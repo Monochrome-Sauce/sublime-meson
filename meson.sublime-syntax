@@ -1,6 +1,7 @@
 %YAML 1.2
 ---
 # http://www.sublimetext.com/docs/syntax.html
+# https://mesonbuild.com/Syntax.html#grammar
 name: Meson
 file_extensions:
   - meson.build
@@ -8,8 +9,8 @@ file_extensions:
 scope: source.meson
 
 variables:
-  identifier: \b[[:alpha:]_][[:alnum:]_]*\b
-  char_hex: '[0-9a-fA-F]'
+  identifier: \b[a-zA-Z_]\w*\b
+  char_hex: '[a-fA-F0-9]'
   char_oct: '[0-7]'
   char_bin: '[0-1]'
 
