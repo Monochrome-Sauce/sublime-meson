@@ -1,0 +1,131 @@
+%YAML 1.2
+---
+# http://www.sublimetext.com/docs/syntax.html
+name: Meson
+file_extensions:
+  - meson.build
+  - meson_options.txt
+scope: source.meson
+contexts:
+  main:
+    - match: \b(meson)\b
+      scope: constant.language.meson
+    - include: comments
+    - include: keywords
+    - include: operators
+    - include: literals
+    - include: functions
+
+  comments:
+    - match: \#.*$
+      scope: comment.line.meson
+
+  keywords:
+    - match: \b(if|else|elif|endif|foreach|endforeach)\b
+      scope: keyword.control.flow.meson
+    - match: \b(and|not|or)\b
+      scope: keyword.operator.logical.meson
+
+  operators:
+    - match: <\=|>\=|\=\=|<|>|\!\=
+      scope: keyword.operator.comparison.meson
+    - match: \+\=
+      scope: keyword.operator.assignment.augmented.meson
+    - match: \=
+      scope: keyword.operator.assignment.meson
+    - match: \+|\-|\*|%|\/
+      scope: keyword.operator.arithmetic.meson
+
+
+# ---- LITERAL HANDLING --------------------------------------------------------
+
+  literals:
+    - include: literal_boolean
+    - include: literal_integer
+    - include: literal_float
+    - include: string
+
+  literal_boolean:
+    - match: \b(true|false)\b
+      scope: constant.language.meson
+
+  literal_integer:
+    - match: '\b([1-9]+[0-9]*|0)'
+      scope: constant.numeric.integer.decimal.meson
+
+  literal_float:
+    - match: '\b([1-9]+[0-9]*\.[0-9]*)'
+      scope: constant.numeric.float.meson
+
+
+# ---- FUNCTION HANDLING -------------------------------------------------------
+
+  functions:
+    - include: function_builtin
+    - include: function_instance_builtin
+    - include: function_named_parameter
+
+  function_builtin:
+    - match: |-
+        (?x)\b(add_global_arguments|add_global_link_arguments|add_languages|add_project_arguments|add_project_dependencies|add_project_link_arguments|add_test_setup|alias_target|assert|benchmark|both_libraries|build_target|configuration_data|configure_file|custom_target|debug|declare_dependency|dependency|disabler|environment|error|executable|files|find_program|generator|get_option|get_variable|import|include_directories|install_data|install_emptydir|install_headers|install_man|install_subdir|install_symlink|is_disabler|is_variable|jar|join_paths|library|message|project|range|run_command|run_target|set_variable|shared_library|shared_module|static_library|structured_sources|subdir|subdir_done|subproject|summary|test|unset_variable|vcs_tag|warning
+        )\b\s*\(
+      captures:
+        1: support.function.builtin.meson
+
+  function_instance_builtin:
+    - match: |-
+        (?x)\w\.\b(find_library|set_quoted|get_compiler|system|contains|get_unquoted
+        )\b\s*\(
+      captures:
+        1: variable.function.builtin.meson
+
+  function_named_parameter:
+    - match: '\b([\w]+)\s*:'
+      captures:
+        1: variable.parameter.function.keyword.meson
+
+
+
+# ---- STRING HANDLING ---------------------------------------------------------
+
+  string:
+    - include: string_quoted_multiline
+    - include: string_quoted_single
+
+  string_quoted_multiline:
+    - match: '''{3}'
+      scope: punctuation.definition.string.begin.meson
+      push:
+        - meta_include_prototype: false
+        - meta_scope: string.raw.meson
+        - match: '''{3}'
+          scope: punctuation.definition.string.end.meson
+          pop: true
+        - include: variable_substitution
+
+  string_quoted_single:
+    - match: '''{1}'
+      scope: punctuation.definition.string.begin.meson
+      push:
+        - meta_include_prototype: false
+        - meta_scope: string.quoted.single.meson
+        - match: '''{1}'
+          scope: punctuation.definition.string.end.meson
+          pop: true
+        - include: escape_sequences
+        - include: variable_substitution
+
+  variable_substitution:
+    - match: '@'
+      scope: punctuation.section.format.begin.meson
+      push:
+        - meta_scope: meta.text-substitution.meson
+        - match: '@'
+          scope: punctuation.section.format.end.meson
+          pop: true
+        - match: \w+
+          scope: variable.language.format string.meson
+
+  escape_sequences:
+    - match: (\\\\)|(\\')|(\\a)|(\\b)|(\\f)|(\\n)|(\\r)|(\\t)|(\\v)|(\\[0-7]{3})|(\\x[0-9a-fA-F]{2})|(\\u[0-9a-fA-F]{4})|(\\U[0-9a-fA-F]{8})
+      scope: constant.character.escape.meson

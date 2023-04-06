@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": ".",
+		},
+	],
+	"settings": {
+		"translate_tabs_to_spaces": false,
+		"LSP": {
+			"LSP-pyright": {
+				"enabled": true,
+				"settings": {
+					"pyright.dev_environment": "sublime_text_38",
+				},
+			},
+		},
+	},
+}
