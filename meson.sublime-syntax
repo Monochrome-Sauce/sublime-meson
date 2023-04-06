@@ -26,12 +26,16 @@ contexts:
       scope: comment.line.meson
 
   keywords:
-    - match: \b(if|else|elif|endif|foreach|endforeach)\b
-      scope: keyword.control.flow.meson
-    - match: \b(and|not|or)\b
-      scope: keyword.operator.logical.meson
+    - match: \b(if|else|elif|endif|foreach|endforeach|break|continue)\b
+      scope: keyword.operator.word.control flow.meson
+    - match: \b(and|or|not|in)\b
+      scope: keyword.operator.word.logical.meson
 
   operators:
+    - match: '\b[\S]+[\s]*(\?)[\s]*[\S]+[\s]*(\:)[\s]*[\S]+\b'
+      captures:
+        1: keyword.operator.ternary.meson
+        2: keyword.operator.ternary.meson
     - match: <\=|>\=|\=\=|<|>|\!\=
       scope: keyword.operator.comparison.meson
     - match: \+\=
