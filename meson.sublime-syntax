@@ -6,10 +6,15 @@ file_extensions:
   - meson.build
   - meson_options.txt
 scope: source.meson
+
+variables:
+  identifier: \b[[:alpha:]_][[:alnum:]_]*\b
+  char_hex: '[0-9a-fA-F]'
+  char_oct: '[0-7]'
+  char_bin: '[0-1]'
+
 contexts:
   main:
-    - match: \b(meson)\b
-      scope: constant.language.meson
     - include: comments
     - include: keywords
     - include: operators
@@ -37,6 +42,7 @@ contexts:
       scope: keyword.operator.arithmetic.meson
 
 
+
 # ---- LITERAL HANDLING --------------------------------------------------------
 
   literals:
@@ -50,12 +56,13 @@ contexts:
       scope: constant.language.meson
 
   literal_integer:
-    - match: '\b([1-9]+[0-9]*|0)'
-      scope: constant.numeric.integer.decimal.meson
+    - match: \b((0x{{char_hex}}+)|(0o{{char_oct}}+)|(0b{{char_bin}}+)|([0-9]+))\b
+      scope: constant.numeric.integer.meson
 
   literal_float:
     - match: '\b([1-9]+[0-9]*\.[0-9]*)'
       scope: constant.numeric.float.meson
+
 
 
 # ---- FUNCTION HANDLING -------------------------------------------------------
@@ -74,23 +81,36 @@ contexts:
 
   function_instance_builtin:
     - match: |-
-        (?x)\w\.\b(find_library|set_quoted|get_compiler|system|contains|get_unquoted
+        (?x)\w\.\b(get_compiler|find_library|set_quoted|get_compiler|system|contains|get_unquoted
         )\b\s*\(
       captures:
-        1: variable.function.builtin.meson
+        2: variable.function.builtin.meson
 
   function_named_parameter:
-    - match: '\b([\w]+)\s*:'
+    - match: '\b({{identifier}})\s*:'
       captures:
-        1: variable.parameter.function.keyword.meson
+        1: variable.parameter.named.meson
 
 
 
 # ---- STRING HANDLING ---------------------------------------------------------
 
   string:
+    - include: string_quoted_format
     - include: string_quoted_multiline
     - include: string_quoted_single
+
+  string_quoted_format:
+    - match: '(f''{1})'
+      scope: punctuation.definition.string.begin.meson
+      push:
+        - meta_include_prototype: false
+        - meta_scope: string.quoted.single.meson
+        - include: escape_sequences
+        - include: variable_substitution
+        - match: '''{1}'
+          scope: punctuation.definition.string.end.meson
+          pop: true
 
   string_quoted_multiline:
     - match: '''{3}'
@@ -101,7 +121,6 @@ contexts:
         - match: '''{3}'
           scope: punctuation.definition.string.end.meson
           pop: true
-        - include: variable_substitution
 
   string_quoted_single:
     - match: '''{1}'
@@ -109,23 +128,22 @@ contexts:
       push:
         - meta_include_prototype: false
         - meta_scope: string.quoted.single.meson
+        - include: escape_sequences
         - match: '''{1}'
           scope: punctuation.definition.string.end.meson
           pop: true
-        - include: escape_sequences
-        - include: variable_substitution
 
   variable_substitution:
     - match: '@'
       scope: punctuation.section.format.begin.meson
       push:
         - meta_scope: meta.text-substitution.meson
+        - match: '{{identifier}}'
+          scope: constant.other.format.meson
         - match: '@'
           scope: punctuation.section.format.end.meson
           pop: true
-        - match: \w+
-          scope: variable.language.format string.meson
 
   escape_sequences:
-    - match: (\\\\)|(\\')|(\\a)|(\\b)|(\\f)|(\\n)|(\\r)|(\\t)|(\\v)|(\\[0-7]{3})|(\\x[0-9a-fA-F]{2})|(\\u[0-9a-fA-F]{4})|(\\U[0-9a-fA-F]{8})
+    - match: (\\\\)|(\\')|(\\a)|(\\b)|(\\f)|(\\n)|(\\r)|(\\t)|(\\v)|(\\{{char_oct}}{3})|(\\x{{char_hex}}{2})|(\\u{{char_hex}}{4})|(\\U{{char_hex}}{8})
       scope: constant.character.escape.meson
