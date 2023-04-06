@@ -38,18 +38,23 @@ contexts:
       scope: keyword.operator.assignment.augmented.meson
     - match: \=
       scope: keyword.operator.assignment.meson
-    - match: \+|\-|\*|%|\/
+    - match: \+|\-|\*|\/|%
       scope: keyword.operator.arithmetic.meson
 
 
 
-# ---- LITERAL HANDLING --------------------------------------------------------
+# ---- LITERAL --------------------------------------------------------
 
   literals:
+    - include: literal_string
     - include: literal_boolean
     - include: literal_integer
     - include: literal_float
-    - include: string
+
+  literal_string:
+    - include: string_quoted_format
+    - include: string_quoted_multiline
+    - include: string_quoted_single
 
   literal_boolean:
     - match: \b(true|false)\b
@@ -65,7 +70,7 @@ contexts:
 
 
 
-# ---- FUNCTION HANDLING -------------------------------------------------------
+# ---- FUNCTION ----------------------------------------------------------------
 
   functions:
     - include: function_builtin
@@ -81,10 +86,9 @@ contexts:
 
   function_instance_builtin:
     - match: |-
-        (?x)\w\.\b(get_compiler|find_library|set_quoted|get_compiler|system|contains|get_unquoted
-        )\b\s*\(
+        [\w\)]\.\b({{identifier}})\b\s*\(
       captures:
-        2: variable.function.builtin.meson
+        1: variable.function.builtin.meson
 
   function_named_parameter:
     - match: '\b({{identifier}})\s*:'
@@ -93,12 +97,7 @@ contexts:
 
 
 
-# ---- STRING HANDLING ---------------------------------------------------------
-
-  string:
-    - include: string_quoted_format
-    - include: string_quoted_multiline
-    - include: string_quoted_single
+# ---- STRING ------------------------------------------------------------------
 
   string_quoted_format:
     - match: '(f''{1})'
