@@ -1,12 +1,11 @@
-import sublime#, sublime_plugin
-import glob, os
 from pathlib import Path
-from typing import Callable, Iterable, MutableMapping, Optional, List
+from typing import Any, Callable, Iterable, MutableMapping, Optional, List
+import glob, os
+import sublime
+
 
 BUILD_CONFIG_NAME: str = 'meson.build'
 STATUS_MESSAGE_PREFIX: str = 'Meson'
-
-panels = { 'Meson': None }
 
 
 def _test_paths_for_executable(paths: Iterable[Path], executable: str) -> Optional[Path]:
@@ -61,12 +60,20 @@ def introspection_data_files() -> Iterable[Path]:
 def display_status_message(message: str):
 	sublime.active_window().status_message(f'{STATUS_MESSAGE_PREFIX}: {message}')
 
-def update_output_panel(cmd_action: Callable[[sublime.View, MutableMapping], None]):
+def update_output_panel(cmd_action: Callable[[sublime.View, MutableMapping], Any]):
 	panel: sublime.View = sublime.active_window().create_output_panel('Meson')
 	sublime.active_window().run_command('show_panel', {'panel': 'output.Meson'})
 	panel.set_read_only(False)
 	
-	env = os.environ
-	env['COLORTERM'] = 'nocolor'
-	cmd_action(panel, env)
+	# env = os.environ
+	# env['COLORTERM'] = 'nocolor'
+	res = cmd_action(panel, os.environ)
 	panel.set_read_only(True)
+	return res
+
+def write_to_output_panel(panel: sublime.View, *, utf8data: bytes):
+	panel.run_command('append', {
+			'characters': utf8data.decode('utf-8'),
+			'force': True, 'scroll_to_end': True
+		}
+	)

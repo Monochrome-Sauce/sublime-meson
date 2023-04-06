@@ -1,8 +1,9 @@
-import sublime, sublime_plugin
-import subprocess, importlib
-from pathlib import Path
-from typing import Optional, Dict
 from . import utils
+from pathlib import Path
+from typing import Dict, Optional
+import sublime, sublime_plugin
+import importlib, subprocess
+
 
 build_dir_request = {
 	'arg': 'build_dir',
