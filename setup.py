@@ -1,19 +1,16 @@
+from collections.abc import MutableMapping
 from . import utils
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, List, Optional
+import importlib, subprocess as sp
 import sublime, sublime_plugin
-import importlib, subprocess
 
 
-build_dir_request = {
-	'arg': 'build_dir',
-	'placeholder': 'Build directory path',
-}
-
-prefix_request = {
-	'arg': 'prefix',
-	'placeholder': 'Prefix (Leave blank for default value)',
-}
+class Requests:
+	BUILD_DIR: Dict[str, str] = {
+		'arg': 'build_dir',
+		'placeholder': 'Build directory path',
+	}
 
 importlib.import_module('Meson')
 
@@ -27,54 +24,37 @@ class MesonSetupInputHandler(sublime_plugin.TextInputHandler):
 	
 	def placeholder(self):
 		return self._placeholder
-	
-	def validate(self, value: str):
-		if self._name == 'prefix':
-			return True
-		return len(value.strip()) > 0
 
 class MesonSetupCommand(sublime_plugin.WindowCommand):
-	def run(self, prefix, build_dir):
-		self.build_dir = build_dir
+	def run(self, build_dir: str):
+		self.build_dir: Path = Path(build_dir)
 		
 		self.build_config_path: Optional[Path] = utils.build_config_path()
 		if self.build_config_path is None:
 			return None
 		
-		self.prefix = prefix if len(prefix) > 0 else None
 		sublime.set_timeout_async(self.__run_async, 0)
-
+	
 	def __run_async(self):
-		command_args = [utils.MESON_BINARY, 'setup']
-		if self.prefix is not None:
-			command_args.append('--prefix=' + self.prefix)
+		utils.display_status_message(f'Setting up from: {self.build_dir}')
+		utils.OutputPanel('Meson').update(self.__execute_meson)
+	
+	def __execute_meson(self, panel: utils.OutputPanel, env: MutableMapping):
+		arg_list: List[str] = [str(utils.MESON_BINARY), 'setup', str(self.build_dir)]
 		
-		command_args.append(self.build_dir)
+		process: sp.Popen[bytes] = utils.run_shell_command(arg_list, env)
+		if process and process.stdout is not None:
+			utils.process_to_panel(process, panel)
 		
-		def cmd_action(panel, env):
-			process = subprocess.Popen(' '.join(command_args), stdout = subprocess.PIPE, shell = True, cwd = utils.project_folder_path(), env = env, bufsize = 0)
-			if process and process.stdout is not None:
-				process.stdout.flush()
-				for line in iter(process.stdout.readline, b''):
-					panel.run_command('append', {'characters': line.decode('utf-8'), 'force': True, 'scroll_to_end': True})
-					process.stdout.flush()
-				
-				process.communicate()
-			
-			status_msg: str = 'Project failed to setup, please refer to output panel'
-			if process.returncode == 0:
-				status_msg = 'Project setup successfully'
-			utils.display_status_message(status_msg)
-		
-		utils.update_output_panel(lambda panel, env: cmd_action(panel, env))
-
+		status_msg: str = 'Failed to setup project, please refer to output panel'
+		if process.returncode == 0:
+			status_msg = 'Project setup complete'
+		utils.display_status_message(status_msg)
+	
 	def input(self, args):
-		input_requests = []
+		input_requests: List[Dict[str, str]] = []
 		if 'build_dir' not in args:
-			input_requests.append(build_dir_request)
-		
-		if 'prefix' not in args:
-			input_requests.append(prefix_request)
+			input_requests.append(Requests.BUILD_DIR)
 		
 		for input_request in input_requests:
 			return MesonSetupInputHandler(input_request)

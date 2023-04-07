@@ -1,4 +1,6 @@
+from __future__ import annotations
 from pathlib import Path
+import subprocess
 from typing import Any, Callable, Iterable, MutableMapping, Optional, List
 import glob, os
 import sublime
@@ -60,20 +62,58 @@ def introspection_data_files() -> Iterable[Path]:
 def display_status_message(message: str):
 	sublime.active_window().status_message(f'{STATUS_MESSAGE_PREFIX}: {message}')
 
-def update_output_panel(cmd_action: Callable[[sublime.View, MutableMapping], Any]):
-	panel: sublime.View = sublime.active_window().create_output_panel('Meson')
-	sublime.active_window().run_command('show_panel', {'panel': 'output.Meson'})
-	panel.set_read_only(False)
-	
-	# env = os.environ
-	# env['COLORTERM'] = 'nocolor'
-	res = cmd_action(panel, os.environ)
-	panel.set_read_only(True)
-	return res
-
-def write_to_output_panel(panel: sublime.View, *, utf8data: bytes):
-	panel.run_command('append', {
-			'characters': utf8data.decode('utf-8'),
-			'force': True, 'scroll_to_end': True
-		}
+def run_shell_command(args: List[str], env: MutableMapping[str, str]) -> subprocess.Popen[bytes]:
+	return subprocess.Popen(' '.join(args),
+		stdout=subprocess.PIPE, shell=True, cwd=project_folder_path(), env=env, bufsize=0
 	)
+
+def process_to_panel(proc: subprocess.Popen[bytes], output: OutputPanel):
+	assert(proc and proc.stdout is not None)
+	proc.stdout.flush()
+	for line in iter(proc.stdout.readline, b''):
+		output.write(line.decode('utf-8'))
+		proc.stdout.flush()
+	proc.communicate()
+
+
+class OutputPanel:
+	def __init__(self, name: str):
+		assert(len(name) > 0)
+		self.panel: sublime.View = sublime.active_window().create_output_panel(name)
+		self.name = 'output.' + name
+	
+	def update(self, cmd_action: Callable[[OutputPanel, MutableMapping[str, str]], Any]):
+		self.panel.set_read_only(False)
+		self.show()
+		
+		os.environ['COLORTERM'] = 'nocolor'
+		res = cmd_action(self, os.environ)
+		
+		self.panel.set_read_only(True)
+		return res
+	
+	def write(self, message: str):
+		self.panel.run_command('append',
+			{ 'characters': message, 'force': True, 'scroll_to_end': True }
+		)
+	
+	def show(self):
+		sublime.active_window().run_command('show_panel', { 'panel': self.name })
+	
+	def hide(self):
+		sublime.active_window().run_command('hide_panel', { 'panel': self.name })
+	
+	def toggle(self):
+		wnd = sublime.active_window()
+		if wnd.active_panel() == self.name:
+			wnd.run_command('hide_panel')
+		else:
+			self.show()
+	
+	def clear(self):
+		sublime.active_window().run_command('select all', { 'panel': self.name, })
+		self.panel.set_read_only(False)
+		sublime.active_window().run_command('left delete', { 'panel': self.name })
+		self.panel.set_read_only(True)
+
+#OUTPUT_PANEL: OutputPanel = OutputPanel('Meson')

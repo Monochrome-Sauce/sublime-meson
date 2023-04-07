@@ -1,4 +1,6 @@
 [
 	{ "caption": "Meson: Setup", "command": "meson_setup" },
 	{ "caption": "Meson: Compile", "command": "meson_compile" },
+	{ "caption": "Meson: Toggle Output Panel", "command": "meson_toggle_panel" },
+	{ "caption": "Meson: Clear Output Panel", "command": "meson_clear_panel" },
 ]
