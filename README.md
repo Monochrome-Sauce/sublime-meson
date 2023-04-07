@@ -1,14 +1,12 @@
 # Meson Build - Sublime Text Plugin
 
-Sublime Text Meson Build Integration.
-
-**ARCHIVED**: Please fork and continue work elsewhere.
+Sublime Text Meson-Build integration.
 
 ## Installation
 
 ### Package Control
 
-Install it from [Package Control](https://packagecontrol.io/packages/Meson)
+Install it from [Package Control](https://packagecontrol.io/packages/Meson).
 
 ### Manual Installation
 
@@ -16,15 +14,15 @@ Copy this repo's folder into your Sublime Text `Packages` directory. You will ne
 
 ## How to use
 
-- Open the Command Palette (Command+Shift+p on OS X, Control+Shift+p on Linux/Windows).
-- Start typing "Meson" then you'll see the recommend commands
-- Select one of the commands
+1. Open the Command Palette (`Command+Shift+P` on OS X, `Control+Shift+P` on Linux/Windows).
+2. Start typing "Meson" then you'll see the available commands.
+3. Select one of the commands.
 
 ## Features
 
-- Setup Projects 
-- Compile Projects (Requires Meson version >= 0.54)
-- `meson.build` and`meson-options.txt` synatx highlighting
+- Setup projects (i.e `meson setup`).
+- Compile projects (i.e `meson compile`). This feature requires Meson version >= 0.54.
+- Syntax highlighting for `meson.build` and `meson-options.txt` files.
 
 ## Contributing
 
