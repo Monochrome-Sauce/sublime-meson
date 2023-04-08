@@ -125,6 +125,7 @@ class OutputPanel:
 			for line in iter(proc.stdout.readline, b''):
 				self.write(line.decode('utf-8'))
 				proc.stdout.flush()
+		proc.communicate() # for the return code to be 0, this line is necessary
 		return proc.returncode
 
 #OUTPUT_PANEL: OutputPanel = OutputPanel('Meson')
