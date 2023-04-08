@@ -1,6 +1,6 @@
 # Meson Build - Sublime Text Plugin
 
-Sublime Text Meson-Build integration.
+[Meson](https://mesonbuild.com) build system integration for Sublime Text.
 
 ## Installation
 
