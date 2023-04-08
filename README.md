@@ -14,8 +14,8 @@ Copy this repo's folder into your Sublime Text `Packages` directory. You will ne
 
 ## How to use
 
-1. Open the Command Palette (`Command+Shift+P` on OS X, `Control+Shift+P` on Linux/Windows).
-2. Start typing "Meson" then you'll see the available commands.
+1. Open the Command Palette (`cmd+shift+p` on OS X, `ctrl+shift+p` on Linux/Windows).
+2. Start typing "Meson", then you'll see the available commands.
 3. Select one of the commands.
 
 ## Features
