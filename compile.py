@@ -1,7 +1,7 @@
 from . import utils
 from pathlib import Path
-from typing import Dict, List, MutableMapping, Optional
-import importlib, json, subprocess
+from typing import Dict, List, Optional
+import importlib, json
 import sublime, sublime_plugin
 
 importlib.import_module('Meson')
@@ -43,16 +43,10 @@ class MesonCompileCommand(sublime_plugin.WindowCommand):
 	
 	def __run_async(self):
 		utils.display_status_message(f'Compiling from: {self.build_dir}')
-		utils.OutputPanel('Meson').update(lambda panel, env: self.__execute_meson(panel, env))
-	
-	def __execute_meson(self, panel: utils.OutputPanel, env: MutableMapping):
 		args: List[str] = [str(utils.MESON_BINARY), 'compile', '-C', str(self.build_dir)]
-		process: subprocess.Popen[bytes] = utils.run_shell_command(args, env)
+		retcode: int = utils.OutputPanel('Meson').run_process(args)
 		
-		if process and process.stdout is not None:
-			utils.process_to_panel(process, panel)
-		
-		status_msg: str = 'Compilation failed, please refer to output panel'
-		if process.returncode == 0:
-			status_msg = 'Project compiled successfully'
-		utils.display_status_message(status_msg)
+		if retcode == 0:
+			utils.display_status_message('Project compiled successfully')
+		else:
+			utils.display_status_message('Compilation failed, please refer to output panel')

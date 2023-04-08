@@ -1,8 +1,7 @@
 from __future__ import annotations
 from pathlib import Path
-import subprocess
-from typing import Any, Callable, Dict, Iterable, MutableMapping, Optional, List
-import glob, os
+from typing import Dict, Iterable, Mapping, Optional, List
+import glob, os, subprocess as sp
 import sublime
 
 
@@ -71,26 +70,12 @@ def introspection_data_files() -> Iterable[Path]:
 def display_status_message(message: str):
 	sublime.active_window().status_message(f'{STATUS_MESSAGE_PREFIX}: {message}')
 
-def run_shell_command(args: List[str], env: MutableMapping) -> subprocess.Popen[bytes]:
-	return subprocess.Popen(' '.join(args),
-		stdout=subprocess.PIPE, shell=True, cwd=project_folder_path(), env=env, bufsize=0
-	)
-
-def process_to_panel(proc: subprocess.Popen[bytes], output: OutputPanel):
-	assert(proc and proc.stdout is not None)
-	proc.stdout.flush()
-	for line in iter(proc.stdout.readline, b''):
-		output.write(line.decode('utf-8'))
-		proc.stdout.flush()
-	proc.communicate()
-
-
 class OutputPanel:
 	SYNTAX_FILES: Dict[str, str] = {
 		'Meson': 'meson-output.sublime-syntax',
 	}
 	
-	def __init__(self, name: str, clear: bool = False, print_at: bool = True):
+	def __init__(self, name: str, *, clear: bool = False):
 		assert(len(name) > 0)
 		wnd: sublime.Window = sublime.active_window()
 		
@@ -103,21 +88,6 @@ class OutputPanel:
 			syntax_path: Optional[str] = self.SYNTAX_FILES.get(name)
 			if syntax_path is not None:
 				self.panel.set_syntax_file(f'Packages/{PKG_NAME}/{syntax_path}')
-		
-		if print_at:
-			project_name: str = project_file_name(wnd)
-			at: str = '@' if len(project_name) else ''
-			self.write(f'>>> {self.name}{at}{project_name}:#\n')
-	
-	def update(self, cmd_action: Callable[[OutputPanel, MutableMapping], Any]):
-		self.panel.set_read_only(False)
-		self.show()
-		
-		os.environ['COLORTERM'] = 'nocolor'
-		res = cmd_action(self, os.environ)
-		
-		self.panel.set_read_only(True)
-		return res
 	
 	def write(self, message: str):
 		self.panel.run_command('append',
@@ -136,5 +106,23 @@ class OutputPanel:
 			wnd.run_command('hide_panel')
 		else:
 			self.show()
+	
+	def run_process(self, args: List[str], *, env: Mapping = os.environ) -> int:
+		project_name: str = project_file_name(sublime.active_window())
+		at: str = '@' if len(project_name) != 0 else ''
+		command: str = ' '.join(args)
+		
+		self.show()
+		self.write(f'>>> {self.name}{at}{project_name}:# {command}\n')
+		proc: sp.Popen[bytes] = sp.Popen(command, env=env,
+			cwd=project_folder_path(), stdout=sp.PIPE, shell=True, bufsize=0
+		)
+		
+		if proc and proc.stdout is not None:
+			proc.stdout.flush()
+			for line in iter(proc.stdout.readline, b''):
+				self.write(line.decode('utf-8'))
+				proc.stdout.flush()
+		return proc.returncode
 
 #OUTPUT_PANEL: OutputPanel = OutputPanel('Meson')

@@ -1,8 +1,7 @@
-from collections.abc import MutableMapping
 from . import utils
 from pathlib import Path
 from typing import Dict, List, Optional
-import importlib, subprocess as sp
+import importlib
 import sublime, sublime_plugin
 
 
@@ -35,22 +34,6 @@ class MesonSetupCommand(sublime_plugin.WindowCommand):
 		
 		sublime.set_timeout_async(self.__run_async, delay=0)
 	
-	def __run_async(self):
-		utils.display_status_message(f'Setting up from: {self.build_dir}')
-		utils.OutputPanel('Meson').update(self.__execute_meson)
-	
-	def __execute_meson(self, panel: utils.OutputPanel, env: MutableMapping):
-		arg_list: List[str] = [str(utils.MESON_BINARY), 'setup', str(self.build_dir)]
-		
-		process: sp.Popen[bytes] = utils.run_shell_command(arg_list, env)
-		if process and process.stdout is not None:
-			utils.process_to_panel(process, panel)
-		
-		status_msg: str = 'Failed to setup project, please refer to output panel'
-		if process.returncode == 0:
-			status_msg = 'Project setup complete'
-		utils.display_status_message(status_msg)
-	
 	def input(self, args: Dict[str, str]):
 		input_requests: List[Dict[str, str]] = []
 		if 'build_dir' not in args:
@@ -58,3 +41,14 @@ class MesonSetupCommand(sublime_plugin.WindowCommand):
 		
 		for input_request in input_requests:
 			return MesonSetupInputHandler(input_request)
+	
+	def __run_async(self):
+		utils.display_status_message(f'Setting up from: {self.build_dir}')
+		
+		arg: List[str] = [str(utils.MESON_BINARY), 'setup', str(self.build_dir)]
+		retcode: int = utils.OutputPanel('Meson').run_process(arg)
+		
+		status_msg: str = 'Failed to setup project, please refer to output panel'
+		if retcode == 0:
+			status_msg = 'Project setup complete'
+		utils.display_status_message(status_msg)
