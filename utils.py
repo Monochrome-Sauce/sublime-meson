@@ -67,8 +67,10 @@ def introspection_data_files() -> Iterable[Path]:
 	data_files: List[str] = glob.glob(str(project / '*/meson-info/meson-info.json'))
 	return map(Path, data_files)
 
-def display_status_message(message: str):
-	sublime.active_window().status_message(f'{STATUS_MESSAGE_PREFIX}: {message}')
+def set_status_message(message: str, window: Optional[sublime.Window] = None):
+	if window is None:
+		window = sublime.active_window()
+	window.status_message(f'{STATUS_MESSAGE_PREFIX}: {message}')
 
 class OutputPanel:
 	SYNTAX_FILES: Dict[str, str] = {
