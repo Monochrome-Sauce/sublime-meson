@@ -1,6 +1,26 @@
 {
 	"scope": "source.meson",
 	"completions": [
+		{ "kind": "variable", "trigger": "build_machine",
+			"contents": "build_machine.",
+			"details": "The machine that is doing the actual compilation",
+		},
+		{ "kind": "variable", "trigger": "host_machine",
+			"contents": "host_machine.",
+			"details": "The machine on which the compiled binary will run",
+		},
+		{ "kind": "variable", "trigger": "include_directories",
+			"contents": "include_directories:",
+		},
+		{ "kind": "variable", "trigger": "meson",
+			"contents": "meson.",
+			"details": "Introspect various properties of the system",
+		},
+		{ "kind": "variable", "trigger": "target_machine",
+			"contents": "target_machine.",
+			"details": "The machine on which the compiled binary's output will run",
+		},
+		
 		{ "kind": "function", "trigger": "add_global_arguments",
 			"contents": "add_global_arguments()",
 			"details": "Add global arguments to the compiler command line",
@@ -222,9 +242,6 @@
 		{ "kind": "function", "trigger": "warning",
 			"contents": "warning()",
 			"details": "Print its argument to stdout prefixed with 'WARNING:'",
-		},
-		{ "kind": "variable", "trigger": "include_directories",
-			"contents": "include_directories: ",
 		},
 	]
 }

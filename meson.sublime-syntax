@@ -12,6 +12,8 @@ variables:
   char_hex: '[a-fA-F0-9]'
   char_oct: '[0-7]'
   char_bin: '[0-1]'
+  builtin_operators: (\+|\-|\*|\/|%)
+  builtin_objects: \b(build_machine|host_machine|meson|target_machine)\b
   builtin_functions: |-
     (?x)\b(
         add_global_arguments
@@ -73,8 +75,6 @@ variables:
       | vcs_tag
       | warning
       )\b
-  builtin_operators: |-
-    (\+|\-|\*|\/|%)
 
 contexts:
   main:
@@ -83,6 +83,8 @@ contexts:
     - include: operators
     - include: literals
     - include: functions
+    - match: '{{builtin_objects}}'
+      scope: variable.language.builtin.meson
 
   comments:
     - match: \#.*$
@@ -150,7 +152,7 @@ contexts:
 
   function_instance_builtin:
     - match: |-
-        [\w\)]\.\b({{identifier}})\b\s*\(
+        \.\b({{identifier}})\b\s*\(
       captures:
         1: variable.function.builtin.meson
 
