@@ -20,9 +20,10 @@ Copy this repo's folder into your Sublime Text `Packages` directory. You will ne
 
 ## Features
 
-- Setup projects (i.e `meson setup`).
-- Compile projects (i.e `meson compile`). This feature requires Meson version >= 0.54.
 - Syntax highlighting for `meson.build` and `meson-options.txt` files.
+- The following commands output to a Sublime Text panel. Every command containing "Panel" affects only the panel itself.
+- `Meson: Setup` setup projects via `meson setup`.
+- `Meson: Compile` compile projects via `meson compile`. This feature requires Meson version >= 0.54.
 
 ## Contributing
 
