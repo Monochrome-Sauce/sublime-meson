@@ -33,7 +33,7 @@ class MesonSetupCommand(sublime_plugin.WindowCommand):
 		if self.build_config_path is None:
 			return None
 		
-		sublime.set_timeout_async(self.__run_async, 0)
+		sublime.set_timeout_async(self.__run_async, delay=0)
 	
 	def __run_async(self):
 		utils.display_status_message(f'Setting up from: {self.build_dir}')
@@ -51,7 +51,7 @@ class MesonSetupCommand(sublime_plugin.WindowCommand):
 			status_msg = 'Project setup complete'
 		utils.display_status_message(status_msg)
 	
-	def input(self, args):
+	def input(self, args: Dict[str, str]):
 		input_requests: List[Dict[str, str]] = []
 		if 'build_dir' not in args:
 			input_requests.append(Requests.BUILD_DIR)

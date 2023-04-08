@@ -1,0 +1,39 @@
+%YAML 1.2
+---
+# http://www.sublimetext.com/docs/syntax.html
+name: Meson
+scope: scope.meson-output
+variables:
+  error_msg: ''
+contexts:
+  main:
+    - match: '>>> [\w\-\_\.]+@[\w\-\_\.]+:#'
+      scope: entity.name.meson-output
+    - include: keywords
+    - include: builtin
+    - include: result
+
+  keywords:
+    - match: \b(YES) (\(cached\))$
+      captures:
+        1: string.meson-output
+        2: comment.meson-output
+
+  builtin:
+    - match: '(Message):'
+      captures:
+        1: variable.function
+    - match: '(FAILED):'
+      scope: message.error.meson-output
+    - match: '(meson\.build):(\d+):(\d+): (ERROR):([\w ]+):'
+      captures:
+        1: constant.numeric.integer.meson-output
+        2: constant.numeric.integer.meson-output
+        3: constant.numeric.integer.meson-output
+        4: message.error.meson-output
+        5: message.error.meson-output
+
+  result:
+    - match: ': ' # any match which doesn't contain the keyword 'ERROR: '
+      captures:
+        1: variable.parameter.named.meson-output

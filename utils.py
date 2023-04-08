@@ -1,13 +1,15 @@
 from __future__ import annotations
 from pathlib import Path
 import subprocess
-from typing import Any, Callable, Iterable, MutableMapping, Optional, List
+from typing import Any, Callable, Dict, Iterable, MutableMapping, Optional, List
 import glob, os
 import sublime
 
 
 BUILD_CONFIG_NAME: str = 'meson.build'
-STATUS_MESSAGE_PREFIX: str = 'Meson'
+PKG_NAME: str = 'Meson'
+STATUS_MESSAGE_PREFIX: str = PKG_NAME
+
 
 
 def _test_paths_for_executable(paths: Iterable[Path], executable: str) -> Optional[Path]:
@@ -16,7 +18,7 @@ def _test_paths_for_executable(paths: Iterable[Path], executable: str) -> Option
 		if file_path.exists() and os.access(file_path, os.X_OK):
 			return file_path
 
-def find_binary(binary_name: str) -> Optional[Path]:
+def _find_binary(binary_name: str) -> Optional[Path]:
 	paths: Iterable[Path] = map(Path, os.environ.get('PATH', '').split(os.pathsep))
 	if os.name == 'nt':
 		binary_name += '.exe'
@@ -36,14 +38,21 @@ def find_binary(binary_name: str) -> Optional[Path]:
 	
 	return _test_paths_for_executable(map(Path, extra_paths), binary_name)
 
-MESON_BINARY: Path = find_binary('meson') or Path()
+MESON_BINARY: Path = _find_binary('meson') or Path()
 assert(MESON_BINARY.is_file())
 del _test_paths_for_executable
+del _find_binary
 
 
 def project_folder_path() -> Optional[Path]:
 	file: Optional[str] = sublime.active_window().project_file_name();
 	if file: return Path(os.path.dirname(file))
+
+def project_file_name(window: Optional[sublime.Window] = None) -> str:
+		if window is None: window = sublime.active_window()
+		
+		project_path: Optional[str] = window.project_file_name()
+		return '' if project_path is None else Path(project_path).stem
 
 def build_config_path() -> Optional[Path]:
 	project: Optional[Path] = project_folder_path()
@@ -62,7 +71,7 @@ def introspection_data_files() -> Iterable[Path]:
 def display_status_message(message: str):
 	sublime.active_window().status_message(f'{STATUS_MESSAGE_PREFIX}: {message}')
 
-def run_shell_command(args: List[str], env: MutableMapping[str, str]) -> subprocess.Popen[bytes]:
+def run_shell_command(args: List[str], env: MutableMapping) -> subprocess.Popen[bytes]:
 	return subprocess.Popen(' '.join(args),
 		stdout=subprocess.PIPE, shell=True, cwd=project_folder_path(), env=env, bufsize=0
 	)
@@ -77,12 +86,30 @@ def process_to_panel(proc: subprocess.Popen[bytes], output: OutputPanel):
 
 
 class OutputPanel:
-	def __init__(self, name: str):
-		assert(len(name) > 0)
-		self.panel: sublime.View = sublime.active_window().create_output_panel(name)
-		self.name = 'output.' + name
+	SYNTAX_FILES: Dict[str, str] = {
+		'Meson': 'meson-output.sublime-syntax',
+	}
 	
-	def update(self, cmd_action: Callable[[OutputPanel, MutableMapping[str, str]], Any]):
+	def __init__(self, name: str, clear: bool = False, print_at: bool = True):
+		assert(len(name) > 0)
+		wnd: sublime.Window = sublime.active_window()
+		
+		# check if the panel exists to avoid having the view cleared
+		tmp_panel: Optional[sublime.View] = None if clear else wnd.find_output_panel(name)
+		self.panel = tmp_panel or wnd.create_output_panel(name)
+		self.name = 'output.' + name
+		
+		if tmp_panel is None: # panel was just created
+			syntax_path: Optional[str] = self.SYNTAX_FILES.get(name)
+			if syntax_path is not None:
+				self.panel.set_syntax_file(f'Packages/{PKG_NAME}/{syntax_path}')
+		
+		if print_at:
+			project_name: str = project_file_name(wnd)
+			at: str = '@' if len(project_name) else ''
+			self.write(f'>>> {self.name}{at}{project_name}:#\n')
+	
+	def update(self, cmd_action: Callable[[OutputPanel, MutableMapping], Any]):
 		self.panel.set_read_only(False)
 		self.show()
 		
@@ -109,11 +136,5 @@ class OutputPanel:
 			wnd.run_command('hide_panel')
 		else:
 			self.show()
-	
-	def clear(self):
-		sublime.active_window().run_command('select all', { 'panel': self.name, })
-		self.panel.set_read_only(False)
-		sublime.active_window().run_command('left delete', { 'panel': self.name })
-		self.panel.set_read_only(True)
 
 #OUTPUT_PANEL: OutputPanel = OutputPanel('Meson')

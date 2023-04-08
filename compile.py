@@ -1,6 +1,6 @@
 from . import utils
 from pathlib import Path
-from typing import Iterable, List, MutableMapping, Optional
+from typing import Dict, List, MutableMapping, Optional
 import importlib, json, subprocess
 import sublime, sublime_plugin
 
@@ -17,8 +17,8 @@ class MesonCompileInputHandler(sublime_plugin.ListInputHandler):
 	def name(self):
 		return 'selected_option'
 	
-	def list_items(self) -> Iterable[str]:
-		self.__clear_build_dirs_list()
+	def list_items(self) -> List[str]:
+		del build_dirs[:]
 		for file_path in utils.introspection_data_files():
 			with open(file_path) as file:
 				introspection_data = json.load(file)
@@ -26,20 +26,18 @@ class MesonCompileInputHandler(sublime_plugin.ListInputHandler):
 			build_dirs.append(loaded_build_dir)
 		
 		return get_build_dir_names()
-	
-	def __clear_build_dirs_list(self):
-		del build_dirs[:]
 
 class MesonCompileCommand(sublime_plugin.WindowCommand):
 	def run(self, selected_option: Optional[str]):
 		if selected_option is None:
-			print(f'Meson compile: no build directories found.')
+			if len(build_dirs) == 0: # the user didn't have anything to select
+				sublime.message_dialog('Meson compile: no build directories found.')
 			return
 		
 		self.build_dir: Path = build_dirs[get_build_dir_names().index(selected_option)]
-		sublime.set_timeout_async(self.__run_async, 0)
+		sublime.set_timeout_async(self.__run_async, delay=0)
 	
-	def input(self, args: List[str]):
+	def input(self, args: Dict[str, str]):
 		if 'selected_option' not in args:
 			return MesonCompileInputHandler()
 	
@@ -47,7 +45,7 @@ class MesonCompileCommand(sublime_plugin.WindowCommand):
 		utils.display_status_message(f'Compiling from: {self.build_dir}')
 		utils.OutputPanel('Meson').update(lambda panel, env: self.__execute_meson(panel, env))
 	
-	def __execute_meson(self, panel: utils.OutputPanel, env: MutableMapping[str, str]):
+	def __execute_meson(self, panel: utils.OutputPanel, env: MutableMapping):
 		args: List[str] = [str(utils.MESON_BINARY), 'compile', '-C', str(self.build_dir)]
 		process: subprocess.Popen[bytes] = utils.run_shell_command(args, env)
 		
