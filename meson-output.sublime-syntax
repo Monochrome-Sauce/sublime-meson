@@ -4,36 +4,40 @@
 name: Meson
 scope: scope.meson-output
 variables:
-  error_msg: ''
+  cmd_call: '[\w\-\_\.]+@[\w\-\_\.]+:#'
 contexts:
   main:
-    - match: '>>> [\w\-\_\.]+@[\w\-\_\.]+:#'
-      scope: entity.name.meson-output
+    - match: '{{cmd_call}}'
+      scope: string.cmd.meson-output
     - include: keywords
-    - include: builtin
-    - include: result
+    - include: reports
+    - include: progress
 
   keywords:
-    - match: \b(YES) (\(cached\))$
+    - match: \b(YES) +(\(cached\))?$
       captures:
         1: string.meson-output
         2: comment.meson-output
 
-  builtin:
-    - match: '(Message):'
+  reports:
+    - match: '(meson\.build):(\d+):(\d+): (ERROR):([\w ]+):?' # detailed error message
       captures:
-        1: variable.function
-    - match: '(FAILED):'
-      scope: message.error.meson-output
-    - match: '(meson\.build):(\d+):(\d+): (ERROR):([\w ]+):'
-      captures:
-        1: constant.numeric.integer.meson-output
-        2: constant.numeric.integer.meson-output
-        3: constant.numeric.integer.meson-output
+        1: constant.numeric.line-number.meson-output
+        2: constant.numeric.line-number.meson-output
+        3: constant.numeric.line-number.meson-output
         4: message.error.meson-output
         5: message.error.meson-output
-
-  result:
-    - match: ': ' # any match which doesn't contain the keyword 'ERROR: '
+    - match: '(FAILED|ERROR):'
       captures:
-        1: variable.parameter.named.meson-output
+        1: message.error.meson-output
+    - match: '(Message):'
+      captures:
+        1: comment.message.meson-output
+    - match: 'A full log can be found at (.*)'
+      captures:
+        1: support.constant.meson-output
+
+  progress:
+    - match: '^\[\d+/\d+\] '
+      scope: constant.numeric.progress.meson-output
+
