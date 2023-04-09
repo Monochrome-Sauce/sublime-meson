@@ -5,13 +5,19 @@ name: Meson
 scope: scope.meson-output
 variables:
   cmd_call: '[\w\-\_\.]+@[\w\-\_\.]+:#'
+  version_string: '\d+(\.\d+)+'
 contexts:
   main:
     - match: '{{cmd_call}}'
       scope: string.cmd.meson-output
+    - include: version
     - include: keywords
     - include: reports
     - include: progress
+
+  version:
+    - match: '{{version_string}}'
+      scope: support.constant.version.meson-output
 
   keywords:
     - match: \b(YES) +(\(cached\))?$
