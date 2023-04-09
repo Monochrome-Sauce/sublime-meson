@@ -12,6 +12,9 @@ variables:
   char_hex: '[a-fA-F0-9]'
   char_oct: '[0-7]'
   char_bin: '[0-1]'
+  char_str: ''''
+  char_fmt: '@'
+  escape_sequences: (\\\\)|(\\')|(\\a)|(\\b)|(\\f)|(\\n)|(\\r)|(\\t)|(\\v)|(\\{{char_oct}}{3})|(\\x{{char_hex}}{2})|(\\u{{char_hex}}{4})|(\\U{{char_hex}}{8})
   builtin_operators: (\+|\-|\*|\/|%)
   builtin_objects: \b(build_machine|host_machine|meson|target_machine)\b
   builtin_functions: |-
@@ -86,6 +89,10 @@ contexts:
     - match: '{{builtin_objects}}'
       scope: variable.language.builtin.meson
 
+  else-pop:
+    - match: (?=\S)
+      pop: true
+
   comments:
     - match: \#.*$
       scope: comment.line.meson
@@ -119,9 +126,10 @@ contexts:
     - include: literal_float
 
   literal_string:
-    - include: string_quoted_format
-    - include: string_quoted_multiline
-    - include: string_quoted_single
+    - include: fstring_line
+    - include: fstring_multiline
+    - include: string_line
+    - include: string_multiline
 
   literal_boolean:
     - match: \b(true|false)\b
@@ -165,50 +173,66 @@ contexts:
 
 # ---- STRING ------------------------------------------------------------------
 
-  string_quoted_format:
-    - match: '(f''{1})'
+  string_line:
+    - match: '{{char_str}}'
       scope: punctuation.definition.string.begin.meson
       push:
         - meta_include_prototype: false
-        - meta_scope: string.quoted.single.meson
-        - include: escape_sequences
-        - include: variable_substitution
-        - match: '''{1}'
+        - meta_content_scope: string.line.meson
+        - include: string_escape_sequences
+        - match: '{{char_str}}'
           scope: punctuation.definition.string.end.meson
           pop: true
 
-  string_quoted_multiline:
-    - match: '''{3}'
+  string_multiline:
+    - match: '{{char_str}}{3}'
       scope: punctuation.definition.string.begin.meson
       push:
         - meta_include_prototype: false
-        - meta_scope: string.raw.meson
-        - match: '''{3}'
+        - meta_content_scope: string.multiline.meson
+        - match: '{{char_str}}{3}'
           scope: punctuation.definition.string.end.meson
           pop: true
 
-  string_quoted_single:
-    - match: '''{1}'
-      scope: punctuation.definition.string.begin.meson
+  fstring_line:
+    - match: '(f)({{char_str}})'
+      captures:
+        1: storage.type.string.python
+        2: punctuation.definition.string.begin.meson
       push:
         - meta_include_prototype: false
-        - meta_scope: string.quoted.single.meson
-        - include: escape_sequences
-        - match: '''{1}'
+        - meta_content_scope: string.line.meson
+        - include: string_escape_sequences
+        - include: fstring_substitution
+        - match: '{{char_str}}'
           scope: punctuation.definition.string.end.meson
           pop: true
 
-  variable_substitution:
-    - match: '@'
+  fstring_multiline:
+    - match: '(f)({{char_str}}{3})'
+      captures:
+        1: storage.type.string.python
+        2: punctuation.definition.string.begin.meson
+      push:
+        - meta_include_prototype: false
+        - meta_content_scope: string.multiline.meson
+        - include: fstring_substitution
+        - match: '{{char_str}}{3}'
+          scope: punctuation.definition.string.end.meson
+          pop: true
+
+  fstring_substitution:
+    - match: '{{char_fmt}}(.*\s+.*|){{char_fmt}}'
+      scope: invalid.meson
+    - match: '{{char_fmt}}'
       scope: punctuation.section.format.begin.meson
       push:
-        - meta_scope: meta.text-substitution.meson
         - match: '{{identifier}}'
-          scope: constant.other.format.meson
-        - match: '@'
+          scope: variable.parameter.format.meson
+        - match: '{{char_fmt}}'
           scope: punctuation.section.format.end.meson
           pop: true
 
-  escape_sequences:
-    - match: (\\\\)|(\\')|(\\a)|(\\b)|(\\f)|(\\n)|(\\r)|(\\t)|(\\v)|(\\{{char_oct}}{3})|(\\x{{char_hex}}{2})|(\\u{{char_hex}}{4})|(\\U{{char_hex}}{8})
+  string_escape_sequences:
+    - match: '{{escape_sequences}}'
       scope: constant.character.escape.meson
