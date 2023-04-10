@@ -19,7 +19,7 @@ class MesonCompileInputHandler(sublime_plugin.ListInputHandler):
 	@classmethod
 	def list_items(cls) -> List[sublime.ListInputItem]:
 		build_paths: List[sublime.ListInputItem] = []
-		for file_path in utils.get_build_data(utils.MesonInfo.MESON_INFO):
+		for file_path in utils.get_info_files(utils.MesonInfo.MESON_INFO):
 			with open(file_path) as file:
 				meson_info = json.load(file)
 			path: str = meson_info['directories']['build']

@@ -67,7 +67,7 @@ def set_status_message(message: str, window: Optional[sublime.Window] = None):
 def log(s: Any):
 	print(f'[{PKG_NAME}] {s}')
 
-def get_build_data(data: MesonInfo) -> Iterable[Path]:
+def get_info_files(data: MesonInfo) -> Iterable[Path]:
 	project: Optional[Path] = project_folder_path()
 	if project is None:
 		return []
@@ -90,6 +90,11 @@ class MesonInfo(enum.Enum):
 	INTRO_TESTS = enum.auto()
 	MESON_INFO = enum.auto()
 	pass
+
+class Request:
+	def __init__(self, name: str, *, placeholder: Optional[str]) -> None:
+		self.name: str = name
+		self.placeholder: Optional[str] = placeholder
 
 class OutputPanel:
 	_SYNTAX_FILES: Dict[str, str] = {
