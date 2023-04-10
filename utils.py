@@ -1,7 +1,7 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Dict, Iterable, Mapping, Optional, List
-import glob, os, subprocess as sp
+from typing import Any, Dict, Iterable, Mapping, Optional, List
+import enum, glob, os, subprocess as sp
 import sublime
 
 
@@ -44,6 +44,7 @@ del _find_binary
 
 def project_folder_path() -> Optional[Path]:
 	file: Optional[str] = sublime.active_window().project_file_name();
+	log(f'Project file path = {file}')
 	if file: return Path(os.path.dirname(file))
 
 def project_file_name(window: Optional[sublime.Window] = None) -> str:
@@ -58,18 +59,37 @@ def build_config_path() -> Optional[Path]:
 		config_path: Path = project / BUILD_CONFIG_NAME
 		if config_path.is_file(): return config_path
 
-def introspection_data_files() -> Iterable[Path]:
-	project: Optional[Path] = project_folder_path()
-	if project is None:
-		return []
-	
-	data_files: List[str] = glob.glob(str(project / '*/meson-info/meson-info.json'))
-	return map(Path, data_files)
-
 def set_status_message(message: str, window: Optional[sublime.Window] = None):
 	if window is None:
 		window = sublime.active_window()
 	window.status_message(f'{PKG_NAME}: {message}')
+
+def log(s: Any):
+	print(f'[{PKG_NAME}] {s}')
+
+def get_build_data(data: MesonInfo) -> Iterable[Path]:
+	project: Optional[Path] = project_folder_path()
+	if project is None:
+		return []
+	
+	file: Path = Path(data.name.lower().replace('_', '-')).with_suffix('.json')
+	file = project / '*/meson-info' / file
+	data_files: List[str] = glob.glob(str(file))
+	return map(Path, data_files)
+
+
+class MesonInfo(enum.Enum):
+	INTRO_BENCHMARKS = enum.auto()
+	INTRO_BUILDOPTIONS = enum.auto()
+	INTRO_BUILDSYSTEM_FILES = enum.auto()
+	INTRO_DEPENDENCIES = enum.auto()
+	INTRO_INSTALLED = enum.auto()
+	INTRO_INSTALL_PLAN = enum.auto()
+	INTRO_PROJECTINFO = enum.auto()
+	INTRO_TARGETS = enum.auto()
+	INTRO_TESTS = enum.auto()
+	MESON_INFO = enum.auto()
+	pass
 
 class OutputPanel:
 	_SYNTAX_FILES: Dict[str, str] = {
@@ -126,5 +146,3 @@ class OutputPanel:
 				proc.stdout.flush()
 		proc.communicate() # for the return code to be 0, this line is necessary
 		return proc.returncode
-
-#OUTPUT_PANEL: OutputPanel = OutputPanel('Meson')
