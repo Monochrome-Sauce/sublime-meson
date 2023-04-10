@@ -33,10 +33,9 @@ contexts:
         3: constant.numeric.line-number.meson-output
         4: message.error.meson-output
         5: message.error.meson-output
-    - match: '(FAILED|ERROR):'
-      captures:
-        1: message.error.meson-output
-    - match: '(Message):'
+    - match: '(?i)(failed|error):'
+      scope: message.error.meson-output
+    - match: '^(Message):'
       captures:
         1: comment.message.meson-output
     - match: 'A full log can be found at (.*)'
