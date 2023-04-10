@@ -12,7 +12,7 @@ class MesonSetupInputHandler(sublime_plugin.TextInputHandler):
 	def name() -> str: return 'build_dir'
 	
 	@staticmethod
-	def placeholder() -> str: return 'Build directory path'
+	def placeholder() -> str: return 'Build directory name'
 
 class MesonSetupCommand(sublime_plugin.WindowCommand):
 	def run(self, *, build_dir: str) -> None:
@@ -29,7 +29,12 @@ class MesonSetupCommand(sublime_plugin.WindowCommand):
 			return MesonSetupInputHandler()
 	
 	def __run_async(self) -> None:
-		utils.set_status_message(f'Setting up from: {self._build_dir}')
+		if self._build_dir.is_absolute():
+			if not sublime.ok_cancel_dialog(
+				f'"{self._build_dir}" is relative to root!\nDo you want to setup anyway?',
+				ok_title='Continue'
+			): return
+		utils.set_status_message(f'Setting up: {self._build_dir}')
 		
 		arg: List[str] = [str(utils.MESON_BINARY), 'setup', str(self._build_dir)]
 		retcode: int = utils.OutputPanel('Meson').run_process(arg)
