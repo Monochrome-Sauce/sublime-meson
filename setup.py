@@ -26,10 +26,10 @@ class MesonSetupInputHandler(sublime_plugin.TextInputHandler):
 
 class MesonSetupCommand(sublime_plugin.WindowCommand):
 	def run(self, build_dir: str):
-		self.build_dir: Path = Path(build_dir)
+		self._build_dir: Path = Path(build_dir)
 		
-		self.build_config_path: Optional[Path] = utils.build_config_path()
-		if self.build_config_path is None:
+		self._build_config_path: Optional[Path] = utils.build_config_path()
+		if self._build_config_path is None:
 			return None
 		
 		sublime.set_timeout_async(self.__run_async, delay=0)
@@ -43,9 +43,9 @@ class MesonSetupCommand(sublime_plugin.WindowCommand):
 			return MesonSetupInputHandler(input_request)
 	
 	def __run_async(self):
-		utils.set_status_message(f'Setting up from: {self.build_dir}')
+		utils.set_status_message(f'Setting up from: {self._build_dir}')
 		
-		arg: List[str] = [str(utils.MESON_BINARY), 'setup', str(self.build_dir)]
+		arg: List[str] = [str(utils.MESON_BINARY), 'setup', str(self._build_dir)]
 		retcode: int = utils.OutputPanel('Meson').run_process(arg)
 		
 		status_msg: str = 'Failed to setup project, please refer to output panel'

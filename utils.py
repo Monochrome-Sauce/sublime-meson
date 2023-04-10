@@ -7,7 +7,6 @@ import sublime
 
 BUILD_CONFIG_NAME: str = 'meson.build'
 PKG_NAME: str = 'Meson'
-STATUS_MESSAGE_PREFIX: str = PKG_NAME
 
 
 
@@ -70,10 +69,10 @@ def introspection_data_files() -> Iterable[Path]:
 def set_status_message(message: str, window: Optional[sublime.Window] = None):
 	if window is None:
 		window = sublime.active_window()
-	window.status_message(f'{STATUS_MESSAGE_PREFIX}: {message}')
+	window.status_message(f'{PKG_NAME}: {message}')
 
 class OutputPanel:
-	SYNTAX_FILES: Dict[str, str] = {
+	_SYNTAX_FILES: Dict[str, str] = {
 		'Meson': 'meson-output.sublime-syntax',
 	}
 	
@@ -83,28 +82,28 @@ class OutputPanel:
 		
 		# check if the panel exists to avoid having the view cleared
 		tmp_panel: Optional[sublime.View] = None if clear else wnd.find_output_panel(name)
-		self.panel = tmp_panel or wnd.create_output_panel(name)
-		self.name = 'output.' + name
+		self._panel = tmp_panel or wnd.create_output_panel(name)
+		self._name = 'output.' + name
 		
 		if tmp_panel is None: # panel was just created
-			syntax_path: Optional[str] = self.SYNTAX_FILES.get(name)
+			syntax_path: Optional[str] = self._SYNTAX_FILES.get(name)
 			if syntax_path is not None:
-				self.panel.set_syntax_file(f'Packages/{PKG_NAME}/{syntax_path}')
+				self._panel.set_syntax_file(f'Packages/{PKG_NAME}/{syntax_path}')
 	
 	def write(self, message: str):
-		self.panel.run_command('append',
+		self._panel.run_command('append',
 			{ 'characters': message, 'force': True, 'scroll_to_end': True }
 		)
 	
 	def show(self):
-		sublime.active_window().run_command('show_panel', { 'panel': self.name })
+		sublime.active_window().run_command('show_panel', { 'panel': self._name })
 	
 	def hide(self):
-		sublime.active_window().run_command('hide_panel', { 'panel': self.name })
+		sublime.active_window().run_command('hide_panel', { 'panel': self._name })
 	
 	def toggle(self):
 		wnd = sublime.active_window()
-		if wnd.active_panel() == self.name:
+		if wnd.active_panel() == self._name:
 			wnd.run_command('hide_panel')
 		else:
 			self.show()
@@ -115,7 +114,7 @@ class OutputPanel:
 		command: str = ' '.join(args)
 		
 		self.show()
-		self.write(f'>>> {self.name}{at}{project_name}:# {command}\n')
+		self.write(f'>>> {self._name}{at}{project_name}:# {command}\n')
 		proc: sp.Popen[bytes] = sp.Popen(command, env=env,
 			cwd=project_folder_path(), stdout=sp.PIPE, shell=True, bufsize=0
 		)

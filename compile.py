@@ -34,7 +34,7 @@ class MesonCompileCommand(sublime_plugin.WindowCommand):
 				sublime.message_dialog('Meson compile: no build directories found.')
 			return
 		
-		self.build_dir: Path = build_dirs[get_build_dir_names().index(selected_option)]
+		self._build_dir: Path = build_dirs[get_build_dir_names().index(selected_option)]
 		sublime.set_timeout_async(self.__run_async, delay=0)
 	
 	def input(self, args: Dict[str, str]):
@@ -42,8 +42,8 @@ class MesonCompileCommand(sublime_plugin.WindowCommand):
 			return MesonCompileInputHandler()
 	
 	def __run_async(self):
-		utils.set_status_message(f'Compiling from: {self.build_dir}')
-		args: List[str] = [str(utils.MESON_BINARY), 'compile', '-C', str(self.build_dir)]
+		utils.set_status_message(f'Compiling from: {self._build_dir}')
+		args: List[str] = [str(utils.MESON_BINARY), 'compile', '-C', str(self._build_dir)]
 		retcode: int = utils.OutputPanel('Meson').run_process(args)
 		
 		if retcode == 0:
