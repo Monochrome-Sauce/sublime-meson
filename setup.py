@@ -4,45 +4,31 @@ from typing import Dict, List, Optional
 import importlib
 import sublime, sublime_plugin
 
-
-class Requests:
-	BUILD_DIR: Dict[str, str] = {
-		'arg': 'build_dir',
-		'placeholder': 'Build directory path',
-	}
-
 importlib.import_module('Meson')
 
+
 class MesonSetupInputHandler(sublime_plugin.TextInputHandler):
-	def __init__(self, request: Dict[str, str]):
-		self._name: str = request['arg']
-		self._placeholder: str = request['placeholder']
+	@staticmethod
+	def name() -> str: return 'build_dir'
 	
-	def name(self):
-		return self._name
-	
-	def placeholder(self):
-		return self._placeholder
+	@staticmethod
+	def placeholder() -> str: return 'Build directory path'
 
 class MesonSetupCommand(sublime_plugin.WindowCommand):
-	def run(self, build_dir: str):
+	def run(self, *, build_dir: str) -> None:
 		self._build_dir: Path = Path(build_dir)
 		
 		self._build_config_path: Optional[Path] = utils.build_config_path()
 		if self._build_config_path is None:
-			return None
+			return
 		
 		sublime.set_timeout_async(self.__run_async, delay=0)
 	
-	def input(self, args: Dict[str, str]):
-		input_requests: List[Dict[str, str]] = []
-		if 'build_dir' not in args:
-			input_requests.append(Requests.BUILD_DIR)
-		
-		for input_request in input_requests:
-			return MesonSetupInputHandler(input_request)
+	def input(self, args: Dict[str, str]) -> Optional[sublime_plugin.TextInputHandler]:
+		if MesonSetupInputHandler.name() not in args:
+			return MesonSetupInputHandler()
 	
-	def __run_async(self):
+	def __run_async(self) -> None:
 		utils.set_status_message(f'Setting up from: {self._build_dir}')
 		
 		arg: List[str] = [str(utils.MESON_BINARY), 'setup', str(self._build_dir)]
