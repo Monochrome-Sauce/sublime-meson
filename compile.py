@@ -14,7 +14,7 @@ class MesonCompileInputHandler(sublime_plugin.ListInputHandler):
 	def name() -> str: return 'build_dir'
 	
 	@staticmethod
-	def placeholder() -> str: return 'Meson build to compile'
+	def placeholder() -> str: return 'Meson project to compile'
 	
 	@classmethod
 	def list_items(cls) -> List[sublime.ListInputItem]:
