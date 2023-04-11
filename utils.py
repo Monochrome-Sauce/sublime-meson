@@ -91,7 +91,7 @@ class MesonInfo(enum.Enum):
 	MESON_INFO = enum.auto()
 
 class OutputPanel:
-	_SYNTAX_FILES: Dict[str, str] = {
+	__SYNTAX_FILES: Dict[str, str] = {
 		'Meson': 'meson-output.sublime-syntax',
 	}
 	
@@ -101,28 +101,28 @@ class OutputPanel:
 		
 		# check if the panel exists to avoid having the view cleared
 		tmp_panel: Optional[sublime.View] = None if clear else wnd.find_output_panel(name)
-		self._panel = tmp_panel or wnd.create_output_panel(name)
-		self._name = 'output.' + name
+		self.__panel = tmp_panel or wnd.create_output_panel(name)
+		self.__name = 'output.' + name
 		
 		if tmp_panel is None: # panel was just created
-			syntax_path: Optional[str] = self._SYNTAX_FILES.get(name)
+			syntax_path: Optional[str] = self.__SYNTAX_FILES.get(name)
 			if syntax_path is not None:
-				self._panel.set_syntax_file(f'Packages/{PKG_NAME}/{syntax_path}')
+				self.__panel.set_syntax_file(f'Packages/{PKG_NAME}/{syntax_path}')
 	
 	def write(self, message: str):
-		self._panel.run_command('append',
+		self.__panel.run_command('append',
 			{ 'characters': message, 'force': True, 'scroll_to_end': True }
 		)
 	
 	def show(self):
-		sublime.active_window().run_command('show_panel', { 'panel': self._name })
+		sublime.active_window().run_command('show_panel', { 'panel': self.__name })
 	
 	def hide(self):
-		sublime.active_window().run_command('hide_panel', { 'panel': self._name })
+		sublime.active_window().run_command('hide_panel', { 'panel': self.__name })
 	
 	def toggle(self):
 		wnd = sublime.active_window()
-		if wnd.active_panel() == self._name:
+		if wnd.active_panel() == self.__name:
 			wnd.run_command('hide_panel')
 		else:
 			self.show()
@@ -133,7 +133,7 @@ class OutputPanel:
 		command: str = ' '.join(args)
 		
 		self.show()
-		self.write(f'>>> {self._name}{at}{project_name}:# {command}\n')
+		self.write(f'>>> {self.__name}{at}{project_name}:# {command}\n')
 		
 		log(f'Process began with {args}')
 		proc: sp.Popen[bytes] = sp.Popen(command, env=env,
@@ -141,15 +141,15 @@ class OutputPanel:
 		)
 		
 		if proc.stdout is not None:
-			self._write_io(proc.stdout)
+			self.__write_io(proc.stdout)
 		if proc.stderr is not None:
-			self._write_io(proc.stderr)
+			self.__write_io(proc.stderr)
 		proc.communicate() # for the return code to be 0, this line is necessary
 		
 		log(f'Process ended with exit code {proc.returncode}')
 		return proc.returncode
 	
-	def _write_io(self, stream: IO[bytes]):
+	def __write_io(self, stream: IO[bytes]):
 		stream.flush()
 		for line in iter(stream.readline, b''):
 			self.write(line.decode('utf-8'))

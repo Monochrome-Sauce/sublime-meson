@@ -35,13 +35,13 @@ class MesonCompileInputHandler(sublime_plugin.ListInputHandler):
 class MesonCompileCommand(sublime_plugin.WindowCommand):
 	def run(self, *, build_dir: Optional[str]) -> None:
 		default: str = MesonCompileInputHandler._last_path
-		self._build_dir: Path = Path(build_dir if build_dir is not None else default)
+		self.__build_dir: Path = Path(build_dir if build_dir is not None else default)
 		
 		if build_dir is None and len(default) == 0:
 			# the user didn't have anything to select
 			sublime.message_dialog('Meson compile: no build directories found.')
 		else:
-			utils.log(f'{self._build_dir=}')
+			utils.log(f'{self.__build_dir=}')
 			sublime.set_timeout_async(self.__run_async, delay=0)
 	
 	def input(self, args: Dict[str, str]) -> Optional[sublime_plugin.ListInputHandler]:
@@ -50,7 +50,7 @@ class MesonCompileCommand(sublime_plugin.WindowCommand):
 	
 	def __run_async(self) -> None:
 		utils.set_status_message(f'Project compilation started')
-		args: List[str] = [str(utils.MESON_BINARY), 'compile', '-C', str(self._build_dir)]
+		args: List[str] = [str(utils.MESON_BINARY), 'compile', '-C', str(self.__build_dir)]
 		
 		if utils.OutputPanel('Meson').run_process(args) == 0:
 			utils.set_status_message('Project compiled successfully')

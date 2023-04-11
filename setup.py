@@ -16,10 +16,10 @@ class MesonSetupInputHandler(sublime_plugin.TextInputHandler):
 
 class MesonSetupCommand(sublime_plugin.WindowCommand):
 	def run(self, *, build_dir: str) -> None:
-		self._build_dir: Path = Path(build_dir)
+		self.__build_dir: Path = Path(build_dir)
 		
-		self._build_config_path: Optional[Path] = utils.build_config_path()
-		if self._build_config_path is None:
+		self.__build_config_path: Optional[Path] = utils.build_config_path()
+		if self.__build_config_path is None:
 			return
 		
 		sublime.set_timeout_async(self.__run_async, delay=0)
@@ -29,14 +29,14 @@ class MesonSetupCommand(sublime_plugin.WindowCommand):
 			return MesonSetupInputHandler()
 	
 	def __run_async(self) -> None:
-		if self._build_dir.is_absolute():
+		if self.__build_dir.is_absolute():
 			if not sublime.ok_cancel_dialog(
-				f'"{self._build_dir}" is relative to root!\nDo you want to setup anyway?',
+				f'"{self.__build_dir}" is relative to root!\nDo you want to setup anyway?',
 				ok_title='Continue'
 			): return
-		utils.set_status_message(f'Setting up: {self._build_dir}')
+		utils.set_status_message(f'Setting up: {self.__build_dir}')
 		
-		args: List[str] = [str(utils.MESON_BINARY), 'setup', str(self._build_dir)]
+		args: List[str] = [str(utils.MESON_BINARY), 'setup', str(self.__build_dir)]
 		if utils.OutputPanel('Meson').run_process(args) == 0:
 			utils.set_status_message('Project setup complete')
 		else:
