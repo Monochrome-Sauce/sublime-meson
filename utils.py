@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Any, Dict, Iterable, Mapping, Optional, List
+from typing import IO, Any, Dict, Iterable, Mapping, Optional, List
 import enum, glob, os, subprocess as sp
 import sublime
 
@@ -140,14 +140,23 @@ class OutputPanel:
 		
 		self.show()
 		self.write(f'>>> {self._name}{at}{project_name}:# {command}\n')
+		
+		log(f'Process began with {args}')
 		proc: sp.Popen[bytes] = sp.Popen(command, env=env,
-			cwd=project_folder_path(), stdout=sp.PIPE, shell=True, bufsize=0
+			cwd=project_folder_path(), stdout=sp.PIPE, stderr=sp.PIPE, shell=True, bufsize=0
 		)
 		
-		if proc and proc.stdout is not None:
-			proc.stdout.flush()
-			for line in iter(proc.stdout.readline, b''):
-				self.write(line.decode('utf-8'))
-				proc.stdout.flush()
+		if proc.stdout is not None:
+			self._write_io(proc.stdout)
+		if proc.stderr is not None:
+			self._write_io(proc.stderr)
 		proc.communicate() # for the return code to be 0, this line is necessary
+		
+		log(f'Process ended with exit code {proc.returncode}')
 		return proc.returncode
+	
+	def _write_io(self, stream: IO[bytes]):
+		stream.flush()
+		for line in iter(stream.readline, b''):
+			self.write(line.decode('utf-8'))
+			stream.flush()
