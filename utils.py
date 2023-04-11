@@ -89,12 +89,6 @@ class MesonInfo(enum.Enum):
 	INTRO_TARGETS = enum.auto()
 	INTRO_TESTS = enum.auto()
 	MESON_INFO = enum.auto()
-	pass
-
-class Request:
-	def __init__(self, name: str, *, placeholder: Optional[str]) -> None:
-		self.name: str = name
-		self.placeholder: Optional[str] = placeholder
 
 class OutputPanel:
 	_SYNTAX_FILES: Dict[str, str] = {
