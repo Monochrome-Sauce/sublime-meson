@@ -36,10 +36,8 @@ class MesonSetupCommand(sublime_plugin.WindowCommand):
 			): return
 		utils.set_status_message(f'Setting up: {self._build_dir}')
 		
-		arg: List[str] = [str(utils.MESON_BINARY), 'setup', str(self._build_dir)]
-		retcode: int = utils.OutputPanel('Meson').run_process(arg)
-		
-		status_msg: str = 'Failed to setup project, please refer to output panel'
-		if retcode == 0:
-			status_msg = 'Project setup complete'
-		utils.set_status_message(status_msg)
+		args: List[str] = [str(utils.MESON_BINARY), 'setup', str(self._build_dir)]
+		if utils.OutputPanel('Meson').run_process(args) == 0:
+			utils.set_status_message('Project setup complete')
+		else:
+			utils.set_status_message('Failed to setup project, please refer to output panel')

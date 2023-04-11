@@ -52,11 +52,7 @@ class MesonCompileCommand(sublime_plugin.WindowCommand):
 		utils.set_status_message(f'Project compilation started')
 		args: List[str] = [str(utils.MESON_BINARY), 'compile', '-C', str(self._build_dir)]
 		
-		utils.log(f'Process began with {args}')
-		retcode: int = utils.OutputPanel('Meson').run_process(args)
-		utils.log(f'Process ended with exit code {retcode}')
-		
-		if retcode == 0:
+		if utils.OutputPanel('Meson').run_process(args) == 0:
 			utils.set_status_message('Project compiled successfully')
 		else:
 			utils.set_status_message('Compilation failed, please refer to output panel')
