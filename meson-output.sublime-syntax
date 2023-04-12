@@ -1,7 +1,7 @@
 %YAML 1.2
 ---
 # http://www.sublimetext.com/docs/syntax.html
-name: Meson
+name: Meson Output
 scope: scope.meson-output
 variables:
   cmd_call: '[\w\-\_\.]+@[\w\-\_\.]+:#'
