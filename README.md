@@ -27,4 +27,4 @@ Copy this repo's folder into your Sublime Text `Packages` directory. You will ne
 
 ## Contributing
 
-Check out the [issues](https://github.com/colinkiama/sublime-meson/issues) to see what is being worked on next, suggest something new or report a bug.
+Check out the [issues](https://github.com/Monochrome-Sauce/sublime-meson/issues) to see what is being worked on next, suggest something new or report a bug.
