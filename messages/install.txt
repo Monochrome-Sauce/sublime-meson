@@ -3,9 +3,10 @@
 
 This package adds syntax definitions and a few commands for using the Meson
 build system with Sublime Text.
-There syntax supports meson.build and meson-options.txt files.
+The syntax supports meson.build and meson-options.txt files.
+Settings are available in Preferences > Package Settings > Meson > Settings
 
 To view available commands, simply open the Command Palette (cmd+shift+p on OS X,
 ctrl+shift+p on Linux/Windows) and type "Meson:".
 
-The package requires Meson to be installed.
+The package requires the Meson build tool to be installed to be installed.
