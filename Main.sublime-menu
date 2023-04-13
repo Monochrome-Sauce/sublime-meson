@@ -1,0 +1,26 @@
+[
+	{
+		"id": "preferences",
+		"children": [
+			{
+				"caption": "Package Settings",
+				"id": "package-settings",
+				"children": [
+					{
+						"caption": "Meson",
+						"children": [
+							{
+								"caption": "Settings",
+								"command": "edit_settings",
+								"args": {
+									"base_file": "${packages}/Meson/meson.sublime-settings",
+									"default": "// Settings in here override those in \"Meson/meson.sublime-settings\"\n{\n\t$0\n}\n"
+								}
+							},
+						]
+					}
+				]
+			}
+		]
+	}
+]
