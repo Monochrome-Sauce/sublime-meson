@@ -42,21 +42,10 @@ del _test_paths_for_executable
 del _find_binary
 
 
-def project_folder_path() -> Optional[Path]:
-	file: Optional[str] = sublime.active_window().project_file_name();
-	log(f'Project file path = {file}')
-	if file: return Path(os.path.dirname(file))
-
-def project_file_name(window: Optional[sublime.Window] = None) -> str:
-		if window is None: window = sublime.active_window()
-		
-		project_path: Optional[str] = window.project_file_name()
-		return '' if project_path is None else Path(project_path).stem
-
 def build_config_path() -> Optional[Path]:
-	project: Optional[Path] = project_folder_path()
-	if project is not None:
-		config_path: Path = project / BUILD_CONFIG_NAME
+	config_folder: Optional[Path] = Project().get_folder()
+	if config_folder is not None:
+		config_path: Path = config_folder / BUILD_CONFIG_NAME
 		if config_path.is_file(): return config_path
 
 def set_status_message(message: str, window: Optional[sublime.Window] = None):
@@ -68,7 +57,7 @@ def log(s: Any):
 	print(f'[{PKG_NAME}] {s}')
 
 def get_info_files(data: MesonInfo) -> Iterable[Path]:
-	project: Optional[Path] = project_folder_path()
+	project: Optional[Path] = Project().get_folder()
 	if project is None:
 		return []
 	
@@ -89,6 +78,23 @@ class MesonInfo(enum.Enum):
 	INTRO_TARGETS = enum.auto()
 	INTRO_TESTS = enum.auto()
 	MESON_INFO = enum.auto()
+
+class Project:
+	def __init__(self, window: Optional[sublime.Window] = None) -> None:
+		if window is None: window = sublime.active_window()
+		self.window: sublime.Window = window
+	
+	def get_path(self) -> Optional[Path]:
+		path: Optional[str] = self.window.project_file_name()
+		if path is not None: return Path(path)
+	
+	def get_folder(self) -> Optional[Path]:
+		path: Optional[str] = self.window.project_file_name();
+		if path is not None: return Path(os.path.dirname(path))
+	
+	def get_name(self) -> str:
+		path: Optional[str] = self.window.project_file_name();
+		return '' if path is None else os.path.basename(path)
 
 class OutputPanel:
 	__SYNTAX_FILES: Dict[str, str] = {
@@ -128,7 +134,9 @@ class OutputPanel:
 			self.show()
 	
 	def run_process(self, args: List[str], *, env: Mapping = os.environ) -> int:
-		project_name: str = project_file_name(sublime.active_window())
+		project: Project = Project()
+		
+		project_name: str = project.get_name()
 		at: str = '@' if len(project_name) != 0 else ''
 		command: str = ' '.join(args)
 		
@@ -137,7 +145,7 @@ class OutputPanel:
 		
 		log(f'Process began with {args}')
 		proc: sp.Popen[bytes] = sp.Popen(command, env=env,
-			cwd=project_folder_path(), stdout=sp.PIPE, stderr=sp.PIPE, shell=True, bufsize=0
+			cwd=project.get_folder(), stdout=sp.PIPE, stderr=sp.PIPE, shell=True, bufsize=0
 		)
 		
 		if proc.stdout is not None:
