@@ -4,11 +4,6 @@ from typing import IO, Any, Callable, Dict, Iterable, Mapping, Optional, List
 import enum, glob, os, subprocess as sp
 import sublime
 
-
-BUILD_CONFIG_NAME: str = 'meson.build'
-PKG_NAME: str = 'Meson'
-
-
 # decorator for adding static variables in a function
 def static_vars(**kwargs: Any):
 	def decorate(func: Callable):
@@ -17,16 +12,10 @@ def static_vars(**kwargs: Any):
 		return func
 	return decorate
 
+BUILD_CONFIG_NAME: str = 'meson.build'
+PKG_NAME: str = 'Meson'
 
 
-@static_vars(value=None)
-def default_settings() -> Dict[str, Any]:
-	if default_settings.value is None:
-		resource: str = sublime.load_resource(f'Packages/{PKG_NAME}/meson.sublime-settings')
-		default_settings.value = sublime.decode_value(resource)
-		assert(type(default_settings.value) == dict)
-	
-	return default_settings.value
 
 def _test_paths_for_executable(paths: Iterable[Path], executable: str) -> Optional[Path]:
 	for directory in paths:
@@ -59,6 +48,15 @@ assert(MESON_BINARY.is_file())
 del _test_paths_for_executable
 del _find_binary
 
+
+
+@static_vars(value=None)
+def default_settings() -> Dict[str, Any]:
+	if default_settings.value is None:
+		resource: str = sublime.load_resource(f'Packages/{PKG_NAME}/meson.sublime-settings')
+		default_settings.value = sublime.decode_value(resource)
+		assert(type(default_settings.value) == dict)
+	return default_settings.value
 
 def build_config_path() -> Optional[Path]:
 	config_folder: Optional[Path] = Project().get_folder()
@@ -113,6 +111,13 @@ class Project:
 	def get_name(self) -> str:
 		path: Optional[str] = self.window.project_file_name();
 		return '' if path is None else os.path.basename(path)
+	
+	def get_settings(self) -> Dict[str, Any]:
+		view: Optional[sublime.View] = self.window.active_view()
+		if view is None: return {}
+		
+		settings: Any = view.settings().get(PKG_NAME, {})
+		return settings if type(settings) == dict else {}
 
 class OutputPanel:
 	__SYNTAX_FILES: Dict[str, str] = {
