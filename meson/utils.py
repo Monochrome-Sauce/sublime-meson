@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import IO, Any, Dict, Iterable, Mapping, Optional, List
+from typing import IO, Any, Callable, Dict, Iterable, Mapping, Optional, List
 import enum, glob, os, subprocess as sp
 import sublime
 
@@ -9,6 +9,24 @@ BUILD_CONFIG_NAME: str = 'meson.build'
 PKG_NAME: str = 'Meson'
 
 
+# decorator for adding static variables in a function
+def static_vars(**kwargs: Any):
+	def decorate(func: Callable):
+		for key, val in kwargs.items():
+			setattr(func, key, val)
+		return func
+	return decorate
+
+
+
+@static_vars(value=None)
+def default_settings() -> Dict[str, Any]:
+	if default_settings.value is None:
+		resource: str = sublime.load_resource(f'Packages/{PKG_NAME}/meson.sublime-settings')
+		default_settings.value = sublime.decode_value(resource)
+		assert(type(default_settings.value) == dict)
+	
+	return default_settings.value
 
 def _test_paths_for_executable(paths: Iterable[Path], executable: str) -> Optional[Path]:
 	for directory in paths:
