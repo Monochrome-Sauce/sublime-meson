@@ -17,6 +17,10 @@ class MesonSetupCommand(sublime_plugin.WindowCommand):
 		
 		self.__build_config_path: Optional[Path] = utils.Project().get_config_path()
 		if self.__build_config_path is None:
+			sublime.message_dialog(
+				'The meson.build file wasn\'t found, check if'
+				+'\n- your Meson settings in the sublime-project are correct.'
+			)
 			return
 		
 		sublime.set_timeout_async(self.__run_async, delay=0)
@@ -36,7 +40,7 @@ class MesonSetupCommand(sublime_plugin.WindowCommand):
 		project.status_message(f'Setting up: {self.__build_dir}')
 		
 		args: List[str] = [str(utils.MESON_BINARY), 'setup', str(self.__build_dir)]
-		if utils.OutputPanel('Meson').run_process(args) == 0:
+		if utils.OutputPanel('Meson').run_process(args, cwd=self.__build_config_path) == 0:
 			project.status_message('Project setup complete')
 		else:
 			project.status_message('Failed to setup project, please refer to output panel')

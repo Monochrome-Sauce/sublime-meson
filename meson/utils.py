@@ -62,27 +62,27 @@ def log(s: Any):
 	print(f'[{PKG_NAME}] {s}')
 
 def get_info_files(data: MesonInfo) -> Iterable[Path]:
-	project: Optional[Path] = Project().get_folder()
-	if project is None:
-		return []
+	config_path: Optional[Path] = Project().get_config_path()
+	if config_path is None: return []
 	
-	file: Path = Path(data.name.lower().replace('_', '-')).with_suffix('.json')
-	file = project / '*/meson-info' / file
+	file: Path = config_path / '*/meson-info' / data.value
+	log(f'get_info_files: {file=}')
 	data_files: List[str] = glob.glob(str(file))
+	log(f'get_info_files: {data_files=}')
 	return map(Path, data_files)
 
 
 class MesonInfo(enum.Enum):
-	INTRO_BENCHMARKS = enum.auto()
-	INTRO_BUILDOPTIONS = enum.auto()
-	INTRO_BUILDSYSTEM_FILES = enum.auto()
-	INTRO_DEPENDENCIES = enum.auto()
-	INTRO_INSTALLED = enum.auto()
-	INTRO_INSTALL_PLAN = enum.auto()
-	INTRO_PROJECTINFO = enum.auto()
-	INTRO_TARGETS = enum.auto()
-	INTRO_TESTS = enum.auto()
-	MESON_INFO = enum.auto()
+	INTRO_BENCHMARKS = Path('intro-benchmarks.json')
+	INTRO_BUILDOPTIONS = Path('intro-buildoptions.json')
+	INTRO_BUILDSYSTEM_FILES = Path('intro-buildsystem-files.json')
+	INTRO_DEPENDENCIES = Path('intro-dependencies.json')
+	INTRO_INSTALLED = Path('intro-installed.json')
+	INTRO_INSTALL_PLAN = Path('intro-install-plan.json')
+	INTRO_PROJECTINFO = Path('intro-projectinfo.json')
+	INTRO_TARGETS = Path('intro-targets.json')
+	INTRO_TESTS = Path('intro-tests.json')
+	MESON_INFO = Path('meson-info.json')
 
 class Project:
 	def __init__(self, window: Optional[sublime.Window] = None) -> None:
@@ -120,8 +120,9 @@ class Project:
 		if project_folder is None: return
 		
 		assert(type(build_folder) == str)
-		config_path: Path = project_folder / build_folder / BUILD_CONFIG_NAME
-		if config_path.is_file(): return config_path
+		config_path: Path = project_folder / build_folder
+		log(f'get_config_path: {config_path}')
+		if config_path.is_dir(): return config_path
 	
 	def status_message(self, message: str):
 		self.window.status_message(f'{PKG_NAME}: {message}')
@@ -163,7 +164,9 @@ class OutputPanel:
 		else:
 			self.show()
 	
-	def run_process(self, args: List[str], *, env: Mapping = os.environ) -> int:
+	def run_process(self, args: List[str], *,
+		env: Mapping = os.environ, cwd: Optional[Path] = None
+	) -> int:
 		project: Project = Project()
 		
 		project_name: str = project.get_name()
@@ -174,8 +177,9 @@ class OutputPanel:
 		self.write(f'>>> {self.__name}{at}{project_name}:# {command}\n')
 		
 		log(f'Process began with {args}')
+		if cwd is None: cwd = project.get_folder()
 		proc: sp.Popen[bytes] = sp.Popen(command, env=env,
-			cwd=project.get_folder(), stdout=sp.PIPE, stderr=sp.PIPE, shell=True, bufsize=0
+			cwd=cwd, stdout=sp.PIPE, stderr=sp.PIPE, shell=True, bufsize=0
 		)
 		
 		if proc.stdout is not None:
