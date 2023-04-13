@@ -1,10 +1,8 @@
 from . import utils
 from pathlib import Path
-from typing import Dict, List, Optional
-import importlib, json
+from typing import Any, Dict, List, Optional
+import json
 import sublime, sublime_plugin
-
-importlib.import_module('Meson')
 
 
 class MesonCompileInputHandler(sublime_plugin.ListInputHandler):
@@ -44,7 +42,7 @@ class MesonCompileCommand(sublime_plugin.WindowCommand):
 			utils.log(f'{self.__build_dir=}')
 			sublime.set_timeout_async(self.__run_async, delay=0)
 	
-	def input(self, args: Dict[str, str]) -> Optional[sublime_plugin.ListInputHandler]:
+	def input(self, args: Dict[str, Any]) -> Optional[sublime_plugin.ListInputHandler]:
 		if MesonCompileInputHandler.name() not in args:
 			return MesonCompileInputHandler()
 	

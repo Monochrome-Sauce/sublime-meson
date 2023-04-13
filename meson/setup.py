@@ -1,10 +1,7 @@
 from . import utils
 from pathlib import Path
-from typing import Dict, List, Optional
-import importlib
+from typing import Any, Dict, List, Optional
 import sublime, sublime_plugin
-
-importlib.import_module('Meson')
 
 
 class MesonSetupInputHandler(sublime_plugin.TextInputHandler):
@@ -24,7 +21,7 @@ class MesonSetupCommand(sublime_plugin.WindowCommand):
 		
 		sublime.set_timeout_async(self.__run_async, delay=0)
 	
-	def input(self, args: Dict[str, str]) -> Optional[sublime_plugin.TextInputHandler]:
+	def input(self, args: Dict[str, Any]) -> Optional[sublime_plugin.TextInputHandler]:
 		if MesonSetupInputHandler.name() not in args:
 			return MesonSetupInputHandler()
 	
