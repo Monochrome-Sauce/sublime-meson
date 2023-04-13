@@ -1,0 +1,7 @@
+{
+	// A list of folders relative to the folder of the sublime-project file.
+	// The listed folders are paths searched for the 'meson.build' file.
+	"build_folders": [
+		".",
+	],
+}
