@@ -58,17 +58,6 @@ def default_settings() -> Dict[str, Any]:
 		assert(type(default_settings.value) == dict)
 	return default_settings.value
 
-def build_config_path() -> Optional[Path]:
-	config_folder: Optional[Path] = Project().get_folder()
-	if config_folder is not None:
-		config_path: Path = config_folder / BUILD_CONFIG_NAME
-		if config_path.is_file(): return config_path
-
-def set_status_message(message: str, window: Optional[sublime.Window] = None):
-	if window is None:
-		window = sublime.active_window()
-	window.status_message(f'{PKG_NAME}: {message}')
-
 def log(s: Any):
 	print(f'[{PKG_NAME}] {s}')
 
@@ -118,6 +107,24 @@ class Project:
 		
 		settings: Any = view.settings().get(PKG_NAME, {})
 		return settings if type(settings) == dict else {}
+	
+	def get_config_path(self) -> Optional[Path]:
+		KEY: str = "build_folder"
+		default: str = default_settings()[KEY]
+		
+		build_folder = self.get_settings().get(KEY)
+		if type(build_folder) != type(default):
+			build_folder = default
+		
+		project_folder: Optional[Path] = self.get_folder()
+		if project_folder is None: return
+		
+		assert(type(build_folder) == str)
+		config_path: Path = project_folder / build_folder / BUILD_CONFIG_NAME
+		if config_path.is_file(): return config_path
+	
+	def status_message(self, message: str):
+		self.window.status_message(f'{PKG_NAME}: {message}')
 
 class OutputPanel:
 	__SYNTAX_FILES: Dict[str, str] = {

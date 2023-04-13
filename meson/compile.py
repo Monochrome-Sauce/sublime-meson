@@ -47,10 +47,11 @@ class MesonCompileCommand(sublime_plugin.WindowCommand):
 			return MesonCompileInputHandler()
 	
 	def __run_async(self) -> None:
-		utils.set_status_message(f'Project compilation started')
+		project = utils.Project()
+		project.status_message(f'Project compilation started')
 		args: List[str] = [str(utils.MESON_BINARY), 'compile', '-C', str(self.__build_dir)]
 		
 		if utils.OutputPanel('Meson').run_process(args) == 0:
-			utils.set_status_message('Project compiled successfully')
+			project.status_message('Project compiled successfully')
 		else:
-			utils.set_status_message('Compilation failed, please refer to output panel')
+			project.status_message('Compilation failed, please refer to output panel')

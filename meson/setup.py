@@ -15,7 +15,7 @@ class MesonSetupCommand(sublime_plugin.WindowCommand):
 	def run(self, *, build_dir: str) -> None:
 		self.__build_dir: Path = Path(build_dir)
 		
-		self.__build_config_path: Optional[Path] = utils.build_config_path()
+		self.__build_config_path: Optional[Path] = utils.Project().get_config_path()
 		if self.__build_config_path is None:
 			return
 		
@@ -31,10 +31,12 @@ class MesonSetupCommand(sublime_plugin.WindowCommand):
 				f'"{self.__build_dir}" is relative to root!\nDo you want to setup anyway?',
 				ok_title='Continue'
 			): return
-		utils.set_status_message(f'Setting up: {self.__build_dir}')
+		
+		project = utils.Project()
+		project.status_message(f'Setting up: {self.__build_dir}')
 		
 		args: List[str] = [str(utils.MESON_BINARY), 'setup', str(self.__build_dir)]
 		if utils.OutputPanel('Meson').run_process(args) == 0:
-			utils.set_status_message('Project setup complete')
+			project.status_message('Project setup complete')
 		else:
-			utils.set_status_message('Failed to setup project, please refer to output panel')
+			project.status_message('Failed to setup project, please refer to output panel')
