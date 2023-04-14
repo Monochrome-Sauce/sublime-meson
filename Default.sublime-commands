@@ -3,4 +3,12 @@
 	{ "caption": "Meson: Compile", "command": "meson_compile" },
 	{ "caption": "Meson: Toggle Panel", "command": "meson_toggle_panel" },
 	{ "caption": "Meson: Clear Panel", "command": "meson_clear_panel" },
+	{
+		"caption": "Preferences: Meson Settings",
+		"command": "edit_settings",
+		"args": {
+			"base_file": "${packages}/Meson/meson.sublime-settings",
+			"default": "{\n\t$0\n}\n"
+		}
+	}
 ]
