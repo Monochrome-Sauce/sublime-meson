@@ -1,0 +1,9 @@
+                  Meson v3
+                  ============
+
+This version brings a major upgrade for the syntax used in 'meson.build' and
+'meson_options.txt' files. The changes are based on Sublime Text's default
+'Python.sublime-syntax' at https://github.com/sublimehq/Packages/tree/master/Python.
+
+There's one regression that will be fixed soon:
+- f-strings now use '{identifier}' instead of '@identifier@'.
