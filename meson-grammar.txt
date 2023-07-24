@@ -52,3 +52,21 @@ STRING_SIMPLE_VALUE: \.*?(?<!\\)(\\\\)*?'\
 subscript_expression: postfix_expression "[" expression "]"
 unary_expression: postfix_expression | (unary_operator unary_expression)
 unary_operator: "not" | "-"
+
+
+
+The full list of escape sequences is:
+	\\           Backslash
+	\'           Single quote
+	\a           Bell
+	\b           Backspace
+	\f           Formfeed
+	\n           Newline
+	\r           Carriage Return
+	\t           Horizontal Tab
+	\v           Vertical Tab
+	\ooo         Character with octal value ooo
+	\xhh         Character with hex value hh
+	\uxxxx       Character with 16-bit hex value xxxx
+	\Uxxxxxxxx   Character with 32-bit hex value xxxxxxxx
+	\N{name}     Character named name in Unicode database
