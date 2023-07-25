@@ -207,16 +207,14 @@ contexts:
 
   if-statement-condition:
     - meta_scope: meta.statement.conditional.if.meson
-    - match: '{{colon}}'
-      scope: punctuation.section.block.conditional.if.meson
+    - match: '\n'
       pop: 1
     - include: line-continuation-or-pop
     - include: expression-in-a-statement
 
   elif-statement-condition:
     - meta_scope: meta.statement.conditional.elseif.meson
-    - match: '{{colon}}'
-      scope: punctuation.section.block.conditional.elseif.meson
+    - match: '\n'
       pop: 1
     - include: line-continuation-or-pop
     - include: expression-in-a-statement
