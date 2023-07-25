@@ -661,35 +661,27 @@ contexts:
 ####[ TRIPLE SINGLE QUOTED STRINGS ]############################################
 
   triple-single-quoted-strings:
-    - include: triple-single-quoted-raw-strings
+    - include: triple-single-quoted-u-string
 
   triple-single-quoted-string-end:
     - match: "'''"
       scope: meta.string.meson string.quoted.single.block.meson punctuation.definition.string.end.meson
       set: after-expression
 
-  triple-single-quoted-string-pop:
-    - match: (?=''')
-      pop: 1
+  triple-single-quoted-u-string:
+    - include: triple-single-quoted-u-string-begin
 
-  triple-single-quoted-raw-strings:
+
+  triple-single-quoted-u-string-begin:
     # Triple-quoted raw string, treated as regex
     - match: "'''"
       scope: meta.string.meson string.quoted.single.block.meson punctuation.definition.string.begin.meson
-      push: triple-single-quoted-raw-string-body
+      push: triple-single-quoted-u-string-body
 
-  triple-single-quoted-raw-string-body:
+  triple-single-quoted-u-string-body:
     - meta_include_prototype: false
     - meta_content_scope: meta.string.meson string.quoted.single.block.meson
     - include: triple-single-quoted-string-end
-    - include: triple-single-quoted-raw-string-content
-    # - match: ''
-    #   push: scope:source.regexp.p ython
-    #   with_prototype:
-    #     - include: triple-single-quoted-string-pop
-
-  triple-single-quoted-raw-string-content:
-    - include: string-prototype
 
 
 ####[ SINGLE QUOTED STRINGS ]###################################################
@@ -699,11 +691,11 @@ contexts:
     - include: single-quoted-u-strings
 
   single-quoted-string-end:
-    - match: "'"
-      scope: meta.string.meson string.quoted.single.meson punctuation.definition.string.end.meson
-      set: after-expression
-    - match: \n
-      scope: meta.string.meson string.quoted.single.meson invalid.illegal.unclosed-string.meson
+    - match: (')|(\n)
+      scope: meta.string.meson string.quoted.single.meson
+      captures:
+        1: punctuation.definition.string.end.meson
+        2: invalid.illegal.unclosed-string.meson
       set: after-expression
     - include: string-continuations
 
@@ -735,7 +727,6 @@ contexts:
     - include: single-quoted-u-string-content
 
   single-quoted-u-string-content:
-    - include: string-prototype
     - include: escaped-unicode-chars
     - include: escaped-chars
     - include: single-quoted-string-replacements
@@ -755,7 +746,6 @@ contexts:
     - include: single-quoted-f-string-content
 
   single-quoted-f-string-content:
-    - include: string-prototype
     - include: single-quoted-f-string-replacements
     - include: escaped-unicode-chars
     - include: escaped-chars
@@ -936,10 +926,6 @@ contexts:
     - match: '\{\s*\}'
       scope: invalid.illegal.empty-expression.meson
     - include: illegal-stray-braces
-
-  # for use by inheriting syntaxes to easily inject string interpolation
-  # in any kind of quoted or unquoted string
-  string-prototype: []
 
 
 ####[ PROTOTYPES ]##############################################################
