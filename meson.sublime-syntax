@@ -19,8 +19,9 @@ variables:
   augmented_assignment_operators: |-
     (?x: \+= )
   assignment_operator: '=(?!=)'
-  colon: ':(?!=)'
+  colon: ':'
   hspace: '[ \t]'
+  line_end: '(?:{{hspace}}*[\n#])'
   builtin_functions: |-
     (?x:
       add_global_arguments
@@ -195,12 +196,14 @@ contexts:
     - match: elif\b
       scope: keyword.control.conditional.elseif.meson
       push: elif-statement-condition
-    - match: '(else)(?:{{hspace}}*\n)'
+    - match: (else)\b
       scope: meta.statement.conditional.else.meson
       captures:
         1: keyword.control.conditional.else.meson
-    - match: (endif)(\b)
+    - match: (endif)\b
       scope: meta.statement.conditional.endif.meson
+      captures:
+        1: keyword.control.conditional.endif.meson
 
   if-statement-condition:
     - meta_scope: meta.statement.conditional.if.meson
@@ -226,6 +229,9 @@ contexts:
       captures:
         1: keyword.control.loop.foreach.meson
       push: foreach-statement-target-list
+    - match: (endforeach)\b
+      captures:
+        1: keyword.control.loop.endforeach.meson
 
   foreach-statement-target-list:
     - meta_scope: meta.statement.loop.foreach.meson
@@ -258,16 +264,6 @@ contexts:
 ####[ FUNCTION CALLS ]##########################################################
 
   function-calls:
-    # - match: (?=(\.\s*)?{{path}}\s*\()
-    #   captures:
-    #     1: support.function.builtin.meson
-    # - match: '\b({{identifier}}){{hspace}}*\(\)'
-    #   captures:
-    #     1: variable.function.builtin.meson
-    #   push:
-    #     - function-call-argument-list
-    #     - function-call-wrapper
-    #     - qualified-name-until-leaf
     - match: (?=(\.\s*)?{{path}}\s*\()
       push:
         - function-call-argument-list
@@ -582,10 +578,6 @@ contexts:
       scope: support.function.builtin.meson
 
   builtin-variables:
-    # magic variables which a class/module/object may have.
-    # https://docs.meson.org/3/library/inspect.html#types-and-members
-    # https://docs.meson.org/3/reference/datamodel.html#object.__slots__
-    # https://docs.meson.org/3/reference/datamodel.html#preparing-the-class-namespace
     - match: '{{builtin_variables}}'
       scope: support.variable.magic.meson
 
@@ -684,7 +676,7 @@ contexts:
 
   triple-single-quoted-raw-strings:
     # Triple-quoted raw string, treated as regex
-    - match: \'\'\'
+    - match: "'''"
       scope: meta.string.meson string.quoted.single.block.meson punctuation.definition.string.begin.meson
       push: triple-single-quoted-raw-string-body
 
