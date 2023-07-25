@@ -243,5 +243,21 @@
 			"contents": "warning()",
 			"details": "Print its argument to stdout prefixed with 'WARNING:'",
 		},
+		
+		{ "kind": "snippet", "trigger": "if",
+			"contents": "if condition\nendif",
+		},
+		{ "kind": "snippet", "trigger": "foreach\tForeach loop",
+			"contents": "foreach item: container\nendforeach",
+		},
+		
+		{ "kind": "keyword", "trigger": "if" },
+		{ "kind": "keyword", "trigger": "elif" },
+		{ "kind": "keyword", "trigger": "else" },
+		{ "kind": "keyword", "trigger": "endif" },
+		{ "kind": "keyword", "trigger": "foreach" },
+		{ "kind": "keyword", "trigger": "endforeach" },
+		{ "kind": "keyword", "trigger": "false" },
+		{ "kind": "keyword", "trigger": "true" },
 	]
 }
