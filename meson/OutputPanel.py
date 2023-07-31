@@ -99,14 +99,13 @@ class OutputPanel:
 	def write_start_line(self, project_name: str):
 		at: str = '@' if len(project_name) != 0 else ''
 		
-		# Python 3.9 adds the option to this instead:
+		# Python 3.9 adds the option to do this instead:
 		# project_name = project_name.removesuffix('.sublime-project')
 		suffix='.sublime-project'
 		if suffix and project_name.endswith(suffix):
 			project_name = project_name[:-len(suffix)]
 		
 		self.output.write(f'>>> {self.output.name()}{at}{project_name}:# ')
-		utils.log(f'>>> {self.output.name()}{at}{project_name}:# ')
 	
 	def run_process(self, args: List[str], *,
 		env: Mapping = os.environ, cwd: Optional[Path] = None
@@ -121,9 +120,7 @@ class OutputPanel:
 		if cwd is None: cwd = project.get_folder()
 		
 		import subprocess as sp
-		proc: sp.Popen[bytes] = sp.Popen(command, env=env,
-			cwd=cwd, stdout=sp.PIPE, stderr=sp.PIPE, shell=True, bufsize=0
-		)
+		proc: sp.Popen[bytes] = utils.execute_process(args, cwd, env, 0)
 		
 		streamList = [stream
 			for stream in (proc.stdout, proc.stderr)

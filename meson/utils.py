@@ -1,7 +1,7 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import IO, Any, Callable, Dict, Iterable, Optional, List, Sequence
-import enum, glob, os
+from typing import IO, Any, Callable, Dict, Iterable, Mapping, Optional, List, Sequence
+import enum, glob, os, subprocess as sp
 import sublime
 
 
@@ -91,6 +91,15 @@ def pipe_streams_in_parallel(streams: Sequence[IO[bytes]], output: IO[str]):
 	while len(streams):
 		_pipe_streams(streams, output)
 
+def execute_process(
+	args: Sequence[str], cwd: Optional[Path],
+	env: Mapping = os.environ, buffer_size: int = -1
+) -> sp.Popen[bytes]:
+	if cwd is not None: assert(cwd.is_absolute())
+	return sp.Popen(cwd=cwd, args=args,
+		env=env, shell=False,
+		bufsize=buffer_size, stdout=sp.PIPE, stderr=sp.PIPE,
+	)
 
 class MesonInfo(enum.Enum):
 	INTRO_BENCHMARKS = Path('intro-benchmarks.json')
