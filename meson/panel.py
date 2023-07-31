@@ -1,11 +1,11 @@
-from . import utils
+from .OutputPanel import OutputPanel
 import sublime_plugin
 
 
 class MesonTogglePanelCommand(sublime_plugin.WindowCommand):
 	def run(self):
-		utils.OutputPanel('Meson').toggle()
+		OutputPanel('Meson').toggle()
 
 class MesonClearPanelCommand(sublime_plugin.WindowCommand):
 	def run(self):
-		utils.OutputPanel('Meson', clear=True)
+		OutputPanel('Meson', clear=True)

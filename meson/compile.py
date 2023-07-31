@@ -1,4 +1,5 @@
 from . import utils
+from .OutputPanel import *
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 import json
@@ -51,7 +52,7 @@ class MesonCompileCommand(sublime_plugin.WindowCommand):
 		project.status_message(f'Project compilation started')
 		args: List[str] = [str(utils.MESON_BINARY), 'compile', '-C', str(self.__build_dir)]
 		
-		if utils.OutputPanel('Meson').run_process(args) == 0:
+		if OutputPanel('Meson').run_process(args) == 0:
 			project.status_message('Project compiled successfully')
 		else:
 			project.status_message('Compilation failed, please refer to output panel')
