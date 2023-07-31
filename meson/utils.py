@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import IO, Any, Callable, Dict, Iterable, Mapping, Optional, List
+from typing import IO, Any, Callable, Dict, Iterable, Mapping, Optional, List, Sequence
 import enum, glob, os, subprocess as sp
 import sublime
 
@@ -71,6 +71,25 @@ def get_info_files(data: MesonInfo) -> Iterable[Path]:
 	log(f'get_info_files: {data_files=}')
 	return map(Path, data_files)
 
+def _pipe_streams(streams: List[IO[bytes]], output: IO[str]):
+	toRemove: List[int] = []
+	for ind, stream in enumerate(streams):
+		stream.flush()
+		line = stream.readline()
+		
+		if line == b'':
+			toRemove.append(ind)
+		else:
+			output.write(line.decode())
+	
+	for i in toRemove:
+		del streams[i]
+
+def pipe_streams_in_parallel(streams: Sequence[IO[bytes]], output: IO[str]):
+	streams = list(streams)
+	while len(streams):
+		_pipe_streams(streams, output)
+
 
 class MesonInfo(enum.Enum):
 	INTRO_BENCHMARKS = Path('intro-benchmarks.json')
@@ -127,10 +146,62 @@ class Project:
 	def status_message(self, message: str):
 		self.window.status_message(f'{PKG_NAME}: {message}')
 
+class OutputPanelStream(IO[str]):
+	def __init__(self, name: str, panel: sublime.View):
+		self.__panel = panel
+		self.__name = name
+	
+	def isatty(self) -> bool:
+		return False
+	
+	def readable(self) -> bool:
+		return False
+	
+	def seekable(self) -> bool:
+		return False
+	
+	def writable(self) -> bool:
+		return True
+	
+	def mode(self) -> str:
+		return 'w'
+	
+	def name(self) -> str:
+		return self.__name
+	
+	def fileno(self) -> int:
+		return -1
+	
+	def flush(self) -> None:
+		pass
+	
+	def write(self, s: str) -> int:
+		self.__panel.run_command('append',
+			{ 'characters': s, 'force': True, 'scroll_to_end': True }
+		)
+		return len(s)
+	
+	def writelines(self, lines: List[str]) -> None:
+		for s in lines:
+			self.write(s)
+	
+	def __enter__(self) -> IO[str]:        raise NotImplementedError
+	def __exit__(self, *_) -> None:        raise NotImplementedError
+	def close(self) -> None:               raise NotImplementedError
+	def closed(self) -> bool:              raise NotImplementedError
+	def read(self, *_) -> str:             raise NotImplementedError
+	def readline(self, *_) -> str:         raise NotImplementedError
+	def readlines(self, *_) -> List[str]:  raise NotImplementedError
+	def seek(self, *_) -> int:             raise NotImplementedError
+	def tell(self) -> int:                 raise NotImplementedError
+	def truncate(self, *_) -> int:         raise NotImplementedError
+
 class OutputPanel:
 	__SYNTAX_FILES: Dict[str, str] = {
 		'Meson': 'meson-output.sublime-syntax',
 	}
+	
+	__slots__ = ('output')
 	
 	def __init__(self, name: str, *, clear: bool = False):
 		assert(len(name) > 0)
@@ -138,28 +209,28 @@ class OutputPanel:
 		
 		# check if the panel exists to avoid having the view cleared
 		tmp_panel: Optional[sublime.View] = None if clear else wnd.find_output_panel(name)
-		self.__panel = tmp_panel or wnd.create_output_panel(name)
-		self.__name = 'output.' + name
 		
-		if tmp_panel is None: # panel was just created
-			syntax_path: Optional[str] = self.__SYNTAX_FILES.get(name)
-			if syntax_path is not None:
-				self.__panel.set_syntax_file(f'Packages/{PKG_NAME}/{syntax_path}')
-	
-	def write(self, message: str):
-		self.__panel.run_command('append',
-			{ 'characters': message, 'force': True, 'scroll_to_end': True }
+		self.output = OutputPanelStream('output.' + name,
+			tmp_panel or wnd.create_output_panel(name)
 		)
+		
+		if tmp_panel is not None:
+			return # panel already existed
+		
+		syntax_path: Optional[str] = self.__SYNTAX_FILES.get(name)
+		if syntax_path is not None:
+			panel: sublime.View = self.output.__panel
+			panel.set_syntax_file(f'Packages/{PKG_NAME}/{syntax_path}')
 	
 	def show(self):
-		sublime.active_window().run_command('show_panel', { 'panel': self.__name })
+		sublime.active_window().run_command('show_panel', { 'panel': self.output.name() })
 	
 	def hide(self):
-		sublime.active_window().run_command('hide_panel', { 'panel': self.__name })
+		sublime.active_window().run_command('hide_panel', { 'panel': self.output.name() })
 	
 	def toggle(self):
 		wnd = sublime.active_window()
-		if wnd.active_panel() == self.__name:
+		if wnd.active_panel() == self.output.name():
 			wnd.run_command('hide_panel')
 		else:
 			self.show()
@@ -174,7 +245,7 @@ class OutputPanel:
 		command: str = ' '.join(args)
 		
 		self.show()
-		self.write(f'>>> {self.__name}{at}{project_name}:# {command}\n')
+		self.output.write(f'>>> {self.output.name()}{at}{project_name}:# {command}\n')
 		
 		log(f'Process began with {args}')
 		if cwd is None: cwd = project.get_folder()
@@ -182,17 +253,12 @@ class OutputPanel:
 			cwd=cwd, stdout=sp.PIPE, stderr=sp.PIPE, shell=True, bufsize=0
 		)
 		
-		if proc.stdout is not None:
-			self.__write_io(proc.stdout)
-		if proc.stderr is not None:
-			self.__write_io(proc.stderr)
+		streamList = [stream
+			for stream in (proc.stdout, proc.stderr)
+			if stream is not None
+		]
+		pipe_streams_in_parallel(streamList, self.output)
 		proc.communicate() # for the return code to be 0, this line is necessary
 		
 		log(f'Process ended with exit code {proc.returncode}')
 		return proc.returncode
-	
-	def __write_io(self, stream: IO[bytes]):
-		stream.flush()
-		for line in iter(stream.readline, b''):
-			self.write(line.decode('utf-8'))
-			stream.flush()
