@@ -5,7 +5,7 @@ import os
 import sublime
 
 
-class OutputPanelStream(IO[str]):
+class PanelStream(IO[str]):
 	def __init__(self, name: str, panel: sublime.View):
 		self.__name = name
 		self.panel = panel
@@ -56,7 +56,7 @@ class OutputPanelStream(IO[str]):
 	def tell(self) -> int:                 raise NotImplementedError
 	def truncate(self, *_) -> int:         raise NotImplementedError
 
-class OutputPanel:
+class Panel:
 	__SYNTAX_FILES: Dict[str, str] = {
 		'Meson': 'meson-output.sublime-syntax',
 	}
@@ -70,7 +70,7 @@ class OutputPanel:
 		# check if the panel exists to avoid having the view cleared
 		tmp_panel: Optional[sublime.View] = None if clear else wnd.find_output_panel(name)
 		
-		self.output = OutputPanelStream('output.' + name,
+		self.output = PanelStream('output.' + name,
 			tmp_panel or wnd.create_output_panel(name)
 		)
 		

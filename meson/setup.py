@@ -1,6 +1,6 @@
 from . import MesonCommands
+from . import MesonOutput
 from . import utils
-from .OutputPanel import OutputPanel
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 import sublime, sublime_plugin
@@ -42,7 +42,7 @@ class MesonSetupCommand(sublime_plugin.WindowCommand):
 		project.status_message(f'Setting up: {self.__build_dir}')
 		
 		args: List[str] = MesonCommands.setup(self.__build_dir)
-		if OutputPanel('Meson').run_process(args, cwd=self.__build_config_path) == 0:
+		if MesonOutput.Panel('Meson').run_process(args, cwd=self.__build_config_path) == 0:
 			project.status_message('Project setup complete')
 		else:
 			project.status_message('Failed to setup project, please refer to output panel')
