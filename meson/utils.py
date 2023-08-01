@@ -18,39 +18,6 @@ PKG_NAME: str = 'Meson'
 
 
 
-def _test_paths_for_executable(paths: Iterable[Path], executable: str) -> Optional[Path]:
-	for directory in paths:
-		file_path: Path = directory / executable
-		if file_path.exists() and os.access(file_path, os.X_OK):
-			return file_path
-
-def _find_binary(binary_name: str) -> Optional[Path]:
-	paths: Iterable[Path] = map(Path, os.environ.get('PATH', '').split(os.pathsep))
-	if os.name == 'nt':
-		binary_name += '.exe'
-	
-	path: Optional[Path] = _test_paths_for_executable(paths, binary_name)
-	if path:
-		return path;
-	
-	# /usr/local/bin:/usr/local/meson/bin
-	if os.name == 'nt':
-		extra_paths = (
-			os.path.join(os.environ.get('ProgramFiles', ''), 'meson', 'bin'),
-			os.path.join(os.environ.get('ProgramFiles(x86)', ''), 'meson', 'bin'),
-		)
-	else:
-		extra_paths = ('/usr/local/bin', '/usr/local/meson/bin')
-	
-	return _test_paths_for_executable(map(Path, extra_paths), binary_name)
-
-MESON_BINARY: Path = _find_binary('meson') or Path()
-assert(MESON_BINARY.is_file())
-del _test_paths_for_executable
-del _find_binary
-
-
-
 @static_vars(value=None)
 def default_settings() -> Dict[str, Any]:
 	if default_settings.value is None:

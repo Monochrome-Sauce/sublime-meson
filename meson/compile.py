@@ -1,3 +1,4 @@
+from . import MesonCommands
 from . import utils
 from .OutputPanel import *
 from pathlib import Path
@@ -50,7 +51,7 @@ class MesonCompileCommand(sublime_plugin.WindowCommand):
 	def __run_async(self) -> None:
 		project = utils.Project()
 		project.status_message(f'Project compilation started')
-		args: List[str] = [str(utils.MESON_BINARY), 'compile', '-C', str(self.__build_dir)]
+		args: List[str] = MesonCommands.compile(self.__build_dir)
 		
 		if OutputPanel('Meson').run_process(args) == 0:
 			project.status_message('Project compiled successfully')
