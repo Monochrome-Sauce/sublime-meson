@@ -1,0 +1,9 @@
+                  Meson v3.2.0
+                  ============
+
+The code was slightly refactored to more easily use Meson as a tool.
+
+Changes and fixes:
+- Paths passed to the package's commands can now contain spaces and other elements such as dashes.
+- Commands are now properly executed relative to the root of the project.
+- Now the command input indicator in the panel will always be present, even without entering a command.
