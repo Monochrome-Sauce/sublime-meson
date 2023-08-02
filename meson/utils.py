@@ -13,7 +13,6 @@ def static_vars(**kwargs: Any):
 		return func
 	return decorate
 
-BUILD_CONFIG_NAME: str = 'meson.build'
 PKG_NAME: str = 'Meson'
 
 
