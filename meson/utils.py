@@ -5,8 +5,8 @@ import enum, glob, os, subprocess as sp
 import sublime
 
 
-# decorator for adding static variables in a function
 def static_vars(**kwargs: Any):
+	'''Decorator for using static variables in a function'''
 	def decorate(func: Callable):
 		for key, val in kwargs.items():
 			setattr(func, key, val)
@@ -27,6 +27,7 @@ def default_settings() -> Dict[str, Any]:
 	return default_settings.value
 
 def log(s: Any):
+	'''Print `s` to stdout with "[`PKG_NAME`]" prefixed to it'''
 	print(f'[{PKG_NAME}] {s}')
 
 def get_info_files(data: MesonInfo) -> Iterable[Path]:
@@ -54,6 +55,14 @@ def _pipe_streams(streams: List[IO[bytes]], output: IO[str]):
 		del streams[i]
 
 def pipe_streams_in_parallel(streams: Sequence[IO[bytes]], output: IO[str]):
+	'''#Pipe the contents from `streams` to `output` in parallel.
+	The process is as follows:
+	
+	- flush the stream.
+	- read a single line and write it to `output`.
+	- if EOL is reached - remove the stream from the list.
+	- repeat on the next stream, until all streams are removed.
+	'''
 	streams = list(streams)
 	while len(streams):
 		_pipe_streams(streams, output)
@@ -62,6 +71,11 @@ def execute_process(
 	args: Sequence[str], cwd: Optional[Path],
 	env: Mapping = os.environ, buffer_size: int = -1
 ) -> sp.Popen[bytes]:
+	'''#Start a process relative to `cwd` with the given `args`.
+	The STDOUT and STDERR of the process are piped to `subprocess.PIPE`.
+	
+	`cwd` must be an absolute path.
+	'''
 	if cwd is not None: assert(cwd.is_absolute())
 	return sp.Popen(cwd=cwd, args=args,
 		env=env, shell=False,
@@ -81,30 +95,50 @@ class MesonInfo(enum.Enum):
 	MESON_INFO = Path('meson-info.json')
 
 class Project:
-	def __init__(self, window: Optional[sublime.Window] = None) -> None:
+	'''#Wrapper for sublime.Window objects and their project related methods
+	The wrapper adds:
+	
+	- Directly getting the path and folder as Path objects.
+	- Directly getting the name of the name.
+	- Cleaner access to the project settings.
+	- Setting the status message with a proper prefix.
+	'''
+	
+	def __init__(self, window: Optional[sublime.Window] = None):
+		'''
+		@param window: optionally provide a window instead of the class
+		automatically getting the active one.
+		'''
 		if window is None: window = sublime.active_window()
 		self.window: sublime.Window = window
 	
 	def get_path(self) -> Optional[Path]:
+		'''Equivalent to `sublime.Window.project_file_name()`'''
 		path: Optional[str] = self.window.project_file_name()
 		if path is not None: return Path(path)
 	
 	def get_folder(self) -> Optional[Path]:
+		'''Equivalent to getting the dirname of `get_path()`'s result'''
 		path: Optional[str] = self.window.project_file_name();
 		if path is not None: return Path(os.path.dirname(path))
 	
 	def get_name(self) -> str:
+		'''Equivalent to getting the basename of `get_path()`'s result'''
 		path: Optional[str] = self.window.project_file_name();
 		return '' if path is None else os.path.basename(path)
 	
 	def get_settings(self) -> Dict[str, Any]:
+		'''Get the current Meson settings for the Project's active view'''
 		view: Optional[sublime.View] = self.window.active_view()
 		if view is None: return {}
 		
-		settings: Any = view.settings().get(PKG_NAME, {})
+		settings: Any = view.settings().get(key=PKG_NAME, default={})
 		return settings if type(settings) == dict else {}
 	
 	def get_config_path(self) -> Optional[Path]:
+		'''This is one messy function...
+		#TODO: Refactor this shit.
+		'''
 		KEY: str = "build_folder"
 		default: str = default_settings()[KEY]
 		
@@ -121,4 +155,5 @@ class Project:
 		if config_path.is_dir(): return config_path
 	
 	def status_message(self, message: str):
+		'''Set the status message with "`PKG_NAME`: " prefixed to it'''
 		self.window.status_message(f'{PKG_NAME}: {message}')
