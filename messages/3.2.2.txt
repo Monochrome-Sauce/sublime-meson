@@ -1,0 +1,4 @@
+                  Meson v3.2.2
+                  ============
+
+Add highlighting for 'meson.options' files (added in Meson 1.1).
