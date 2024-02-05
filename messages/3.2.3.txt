@@ -1,0 +1,10 @@
+                  Meson v3.2.3
+                  ============
+
+Add 'meson compile.sublime-build' and 'meson setup.sublime-build'.
+Run them in projects containing 'meson.build' files by opening the command
+palette and writing "Build With: meson".
+
+Please open an issue on the GitHub page if there are any problems.
+The commands `Meson: Compile` and `Meson: Setup` *may* become deprecated in the
+future.
