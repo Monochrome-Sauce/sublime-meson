@@ -1,5 +1,6 @@
 {
 	"keyfiles": ["meson.build"],
+	"name": "Meson compile"
 
 	"syntax": "meson-output.sublime-syntax",
 	"working_dir": "$folder/meson-build",
