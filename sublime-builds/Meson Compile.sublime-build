@@ -3,5 +3,5 @@
 	"syntax": "meson-output.sublime-syntax",
 	"working_dir": "$folder/meson-build",
 	"cmd": ["meson", "compile"],
-	"file_regex": "^\\s*(\\S[^:]*):(\\d+):(\\d+): ([^\\n]+)",
+	"file_regex": "^\\h*([^\\s:]*):(\\d+):(\\d+): ([^\\n]+)",
 }
