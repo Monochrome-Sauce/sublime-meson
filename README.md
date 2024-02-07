@@ -24,6 +24,7 @@ Copy this repo's folder into your Sublime Text `Packages` directory. You will ne
 - The following commands output to a Sublime Text panel. Every command containing "Panel" affects only the panel itself.
 - `Meson: Setup` setup projects via `meson setup`.
 - `Meson: Compile` compile projects via `meson compile`. This feature requires Meson version >= 0.54.
+- Integrates with Sublime Text's build systems. It currently provides `meson compile`, `meson setup` and `meson test`.
 
 ## Contributing
 
