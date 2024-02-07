@@ -2,6 +2,5 @@
 	"keyfiles": ["meson.build"],
 	"syntax": "meson-output.sublime-syntax",
 	"working_dir": "$folder/meson-build",
-	"cmd": ["meson", "compile"],
-	"file_regex": "^\\s*(\\S[^:]*):(\\d+):(\\d+): ([^\\n]+)",
+	"cmd": ["meson", "test"],
 }
