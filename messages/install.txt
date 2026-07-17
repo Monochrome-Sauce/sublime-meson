@@ -1,12 +1,7 @@
-                  Thanks for trying out the Meson package!
-                  ========================================
+                  unofficial Meson Build syntax definitions for Sublime Text
+                  ==========================================================
 
-This package adds syntax definitions and a few commands for using the Meson
-build system with Sublime Text.
-The syntax supports meson.build and meson-options.txt files.
-Settings are available in Preferences > Package Settings > Meson > Settings
+This package adds Sublime Text syntax definitions useful for working with
+Meson Build files, and aims to be simple and easy to maintain.
 
-To view available commands, simply open the Command Palette (cmd+shift+p on OS X,
-ctrl+shift+p on Linux/Windows) and type "Meson:".
-
-The package requires the Meson build tool to be installed to be installed.
+The sources are at https://github.com/Monochrome-Sauce/sublime-meson/
