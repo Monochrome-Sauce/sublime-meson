@@ -1,4 +1,0 @@
-{
-	// Directory where the meson.build file resides (relative to the folder of the sublime-project file)
-	"build_folder": ".",
-}
