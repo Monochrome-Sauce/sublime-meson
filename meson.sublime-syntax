@@ -102,7 +102,72 @@ contexts:
       push: statements
 
   statements:
-    - include: expression-as-a-statement
+    - include: try_expression
+
+  try_expression:
+    - include: try_literal
+
+
+##################################[ LITERALS ]##################################
+
+  try_literal:
+    - include: try_binary-literal
+    - include: try_boolean-literal
+    - include: try_hex-literal
+    - include: try_octal-literal
+    - include: try_decimal-literal
+    
+    # - include: try_array-literal
+    # - include: try_dictionary-literal
+    - include: try_string-literal
+
+  try_binary-literal:
+    - match: \b0b[01]+
+      scope: meta.number.integer.binary.meson constant.numeric.value.meson
+    - match: \b0b[^01]*
+      scope: meta.number.integer.binary.meson constant.numeric.value.meson invalid.illegal.meson
+  try_boolean-literal:
+    - match: \bfalse\b
+      scope: constant.language.boolean.false.meson
+    - match: \btrue\b
+      scope: constant.language.boolean.true.meson
+  try_hex-literal:
+    - match: \b0x[a-fA-F0-9]+
+      scope: meta.number.integer.hexadecimal.meson constant.numeric.value.meson
+    - match: \b0x[^a-fA-F0-9]*
+      scope: meta.number.integer.hexadecimal.meson constant.numeric.value.meson invalid.illegal.meson
+  try_octal-literal:
+    - match: \b0o[0-7]+
+      scope: meta.number.integer.octal.meson constant.numeric.value.meson
+    - match: \b0o[^0-7]*
+      scope: meta.number.integer.octal.meson constant.numeric.value.meson invalid.illegal.meson
+  try_decimal-literal:
+    - match: \b(0([0-9]*)|[1-9][0-9]*)
+      captures:
+        1: meta.number.integer.decimal.meson constant.numeric.value.meson
+        2: meta.number.integer.decimal.meson constant.numeric.value.meson invalid.illegal.meson
+
+  try_string-literal:               # ("'" STRING_SIMPLE_VALUE "'") | ("'''" STRING_MULTILINE_VALUE "'''")
+    - match: "'''"
+      scope: string.quoted.triple.meson
+      push: inside_string-multiline-value
+    - match: "'"
+      scope: string.quoted.single.meson
+      push: inside_string-simple-value
+
+  inside_string-multiline-value:      # '\.*?(\'\'\')'
+    - meta_scope: string.quoted.triple.meson
+    - match: \\.
+      scope: constant.character.escape.meson
+    - match: "'''"
+      pop: true
+
+  inside_string-simple-value:         # '\.*?(?<!\\)(\\\\)*?\' ?'
+    - meta_scope: string.quoted.single.meson
+    - match: \\.
+      scope: constant.character.escape.meson
+    - match: "'"
+      pop: true
 
 
 ####################################[ POPS ]####################################
