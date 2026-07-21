@@ -81,3 +81,16 @@
 #   ^ keyword.operator.comparison.meson
 #     ^ keyword.operator.comparison.meson
 #       ^^ keyword.operator.comparison.meson
+
+[ build_machine,host_machine,  meson somevar, target_machine ,
+#<- punctuation.section.brackets.begin
+# ^^^^^^^^^^^^^ variable.language
+#              ^ punctuation.separator.sequence
+#               ^^^^^^^^^^^^ variable.language
+#                           ^ punctuation.separator.sequence
+#                              ^^^^^ variable.language
+#                                    ^^^^^^^ variable.other.readwrite
+#                                             ^^^^^^^^^^^^^^ variable.language
+  add_global_arguments ]
+# ^^^^^^^^^^^^^^^^^^^^ variable.function
+#                      ^ punctuation.section.brackets.end

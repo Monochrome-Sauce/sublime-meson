@@ -157,7 +157,7 @@ contexts:
     - include: try_octal-literal
     - include: try_decimal-literal
     
-    # - include: try_array-literal
+    - include: try_array-literal
     # - include: try_dictionary-literal
     - include: try_string-literal
 
@@ -187,6 +187,18 @@ contexts:
         1: meta.number.integer.decimal.meson constant.numeric.value.meson
         2: invalid.illegal.meson
 
+  try_array-literal:
+    - match: \[
+      scope: punctuation.section.brackets.begin.test-meson
+      push: inside_array-literal
+  inside_array-literal:
+    - match: \]
+      scope: punctuation.section.brackets.end.test-meson
+      pop: 1
+    - include: try_expression
+    - match: \,
+      scope: punctuation.separator.sequence.test-meson
+
   try_string-literal:               # ("'" STRING_SIMPLE_VALUE "'") | ("'''" STRING_MULTILINE_VALUE "'''")
     - match: "'''"
       scope: string.quoted.triple.meson
@@ -200,20 +212,20 @@ contexts:
     - match: \\.
       scope: constant.character.escape.meson
     - match: "'''"
-      pop: true
+      pop: 1
 
   inside_string-simple-value:         # '\.*?(?<!\\)(\\\\)*?\' ?'
     - meta_scope: string.quoted.single.meson
     - match: \\.
       scope: constant.character.escape.meson
     - match: "'"
-      pop: true
+      pop: 1
 
 
 ###################################[ HELPER ]###################################
 
   try_comment:
-    - match: \s*((\#).*)$
+    - match: ((\#).*)$
       captures:
         1: punctuation.definition.comment.meson
         2: comment.line.number-sign.meson
