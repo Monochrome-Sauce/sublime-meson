@@ -105,6 +105,7 @@ contexts:
     - include: try_expression
 
   try_expression:
+    - include: try_comment
     - include: try_literal
 
 
@@ -124,7 +125,7 @@ contexts:
   try_binary-literal:
     - match: \b0b[01]+
       scope: meta.number.integer.binary.meson constant.numeric.value.meson
-    - match: \b0b[^01]*
+    - match: \b0b[^01\s]*
       scope: meta.number.integer.binary.meson constant.numeric.value.meson invalid.illegal.meson
   try_boolean-literal:
     - match: \bfalse\b
@@ -134,18 +135,18 @@ contexts:
   try_hex-literal:
     - match: \b0x[a-fA-F0-9]+
       scope: meta.number.integer.hexadecimal.meson constant.numeric.value.meson
-    - match: \b0x[^a-fA-F0-9]*
+    - match: \b0x[^a-fA-F0-9\s]*
       scope: meta.number.integer.hexadecimal.meson constant.numeric.value.meson invalid.illegal.meson
   try_octal-literal:
     - match: \b0o[0-7]+
       scope: meta.number.integer.octal.meson constant.numeric.value.meson
-    - match: \b0o[^0-7]*
+    - match: \b0o[^0-7\s]*
       scope: meta.number.integer.octal.meson constant.numeric.value.meson invalid.illegal.meson
   try_decimal-literal:
     - match: \b(0([0-9]*)|[1-9][0-9]*)
       captures:
         1: meta.number.integer.decimal.meson constant.numeric.value.meson
-        2: meta.number.integer.decimal.meson constant.numeric.value.meson invalid.illegal.meson
+        2: invalid.illegal.meson
 
   try_string-literal:               # ("'" STRING_SIMPLE_VALUE "'") | ("'''" STRING_MULTILINE_VALUE "'''")
     - match: "'''"
@@ -170,7 +171,13 @@ contexts:
       pop: true
 
 
-####################################[ POPS ]####################################
+###################################[ HELPER ]###################################
+
+  try_comment:
+    - match: \s*((\#).*)$
+      captures:
+        1: punctuation.definition.comment.meson
+        2: comment.line.number-sign.meson
 
   else-pop:
     - match: (?=\S)
