@@ -72,15 +72,15 @@
 #^^^ variable.other.readwrite
 
  += + =
-#^^ keyword.operator.assignment.meson
-#   ^ keyword.operator.arithmetic.meson
-#     ^ keyword.operator.assignment.meson
+#^^ keyword.operator.assignment
+#   ^ keyword.operator.arithmetic
+#     ^ keyword.operator.assignment
 
  <= > < >=
-#^^ keyword.operator.comparison.meson
-#   ^ keyword.operator.comparison.meson
-#     ^ keyword.operator.comparison.meson
-#       ^^ keyword.operator.comparison.meson
+#^^ keyword.operator.comparison
+#   ^ keyword.operator.comparison
+#     ^ keyword.operator.comparison
+#       ^^ keyword.operator.comparison
 
 [ build_machine,host_machine,  meson somevar, target_machine ,
 #<- punctuation.section.brackets.begin
