@@ -92,5 +92,5 @@
 #                                    ^^^^^^^ variable.other.readwrite
 #                                             ^^^^^^^^^^^^^^ variable.language
   add_global_arguments ]
-# ^^^^^^^^^^^^^^^^^^^^ variable.function
+# ^^^^^^^^^^^^^^^^^^^^ support.function.builtin
 #                      ^ punctuation.section.brackets.end

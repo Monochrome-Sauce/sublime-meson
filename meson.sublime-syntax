@@ -135,7 +135,7 @@ contexts:
 
   try_variable:
     - match: '\b{{BUILTIN_FUNCTIONS}}\b'
-      scope: variable.function.meson
+      scope: support.function.builtin.meson
     - match: '\b{{BUILTIN_OBJECTS}}\b'
       scope: variable.language.meson
     - match: '\b{{IDENTIFIER}}\b'
@@ -192,6 +192,8 @@ contexts:
       scope: punctuation.section.brackets.begin.test-meson
       push: inside_array-literal
   inside_array-literal:
+    - meta_scope: meta.brackets.meson
+    - meta_content_scope: meta.sequence.meson
     - match: \]
       scope: punctuation.section.brackets.end.test-meson
       pop: 1
@@ -208,14 +210,14 @@ contexts:
       push: inside_string-simple-value
 
   inside_string-multiline-value:      # '\.*?(\'\'\')'
-    - meta_scope: string.quoted.triple.meson
+    - meta_scope: meta.string.meson string.quoted.triple.meson
     - match: \\.
       scope: constant.character.escape.meson
     - match: "'''"
       pop: 1
 
   inside_string-simple-value:         # '\.*?(?<!\\)(\\\\)*?\' ?'
-    - meta_scope: string.quoted.single.meson
+    - meta_scope: meta.string.meson string.quoted.single.meson
     - match: \\.
       scope: constant.character.escape.meson
     - match: "'"
