@@ -102,11 +102,50 @@ contexts:
       push: statements
 
   statements:
+    - include: try_statement-keyword
     - include: try_expression
+
+  try_statement-keyword:
+    - match: \bbreak\b
+      scope: keyword.control.flow.break.meson
+    - match: \bcontinue\b
+      scope: keyword.control.flow.continue.meson
+    - match: \belif\b
+      scope: keyword.control.conditional.elseif.meson
+    - match: \belse\b
+      scope: keyword.control.conditional.else.meson
+    - match: \bendforeach\b
+      scope: keyword.control.loop.end.meson
+    - match: \bendif\b
+      scope: keyword.control.conditional.end.meson
+    - match: \bforeach\b
+      scope: keyword.control.loop.for.meson
+    - match: \bif\b
+      scope: keyword.control.conditional.if.meson
+
+  try_operator:
+    - match: \b(and|in|not|or)\b
+      scope: keyword.operator.logical.meson
+    - match: \+?=
+      scope: keyword.operator.assignment.meson
+    - match: ([=!><]=)|[><]
+      scope: keyword.operator.comparison.meson
+    - match: \+|\-|\*|\/|\%
+      scope: keyword.operator.arithmetic.meson
+
+  try_variable:
+    - match: '\b{{BUILTIN_FUNCTIONS}}\b'
+      scope: variable.function.meson
+    - match: '\b{{BUILTIN_OBJECTS}}\b'
+      scope: variable.language.meson
+    - match: '\b{{IDENTIFIER}}\b'
+      scope: variable.other.readwrite.meson
 
   try_expression:
     - include: try_comment
+    - include: try_operator
     - include: try_literal
+    - include: try_variable
 
 
 ##################################[ LITERALS ]##################################

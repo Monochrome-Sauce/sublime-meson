@@ -1,8 +1,8 @@
 # SYNTAX TEST "Packages/MonoMeson/meson.sublime-syntax"
 
 # a mesonbuild syntax test
-# <- comment.line.number-sign punctuation.definition.comment
-#^^^^^^^^^^^^^^^^^^^^^^^^^ comment.line.number-sign
+# <- punctuation.definition.comment comment.line.number-sign
+#^^^^^^^^^^^^^^^^^^^^^^^^^ punctuation.definition.comment
 
 'Hello, World! // not a comment'
 #  ^^^^^^^^^^ string.quoted.single
@@ -36,3 +36,48 @@
  false true
 #^^^^^ constant.language.boolean.false
 #      ^^^^ constant.language.boolean.true
+
+ break
+#^^^^^ keyword.control.flow.break
+ continue
+#^^^^^^^^ keyword.control.flow.continue
+ elif
+#^^^^ keyword.control.conditional.elseif
+ else
+#^^^^ keyword.control.conditional.else
+ endforeach
+#^^^^^^^^^^ keyword.control.loop.end
+ endif
+#^^^^^ keyword.control.conditional.end
+ foreach
+#^^^^^^^ keyword.control.loop.for
+ if
+#^^ keyword.control.conditional.if
+
+ abreak
+#^^^^^^ variable.other.readwrite
+ bcontinue
+#^^^^^^^^^ variable.other.readwrite
+ celif
+#^^^^^ variable.other.readwrite
+ delse
+#^^^^^ variable.other.readwrite
+ eendforeach
+#^^^^^^^^^^^ variable.other.readwrite
+ fendif
+#^^^^^^ variable.other.readwrite
+ gforeach
+#^^^^^^^^ variable.other.readwrite
+ hif
+#^^^ variable.other.readwrite
+
+ += + =
+#^^ keyword.operator.assignment.meson
+#   ^ keyword.operator.arithmetic.meson
+#     ^ keyword.operator.assignment.meson
+
+ <= > < >=
+#^^ keyword.operator.comparison.meson
+#   ^ keyword.operator.comparison.meson
+#     ^ keyword.operator.comparison.meson
+#       ^^ keyword.operator.comparison.meson
