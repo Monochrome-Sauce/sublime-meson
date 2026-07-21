@@ -1,0 +1,38 @@
+# SYNTAX TEST "Packages/MonoMeson/meson.sublime-syntax"
+
+# a mesonbuild syntax test
+# <- comment.line.number-sign punctuation.definition.comment
+#^^^^^^^^^^^^^^^^^^^^^^^^^ comment.line.number-sign
+
+'Hello, World! // not a comment'
+#  ^^^^^^^^^^ string.quoted.single
+#                   ^ string.quoted.single
+
+'''Tripled World! // still not a comment''';
+#   ^^^^^^^^^ string.quoted.triple
+#                     ^ string.quoted.triple
+
+01234567890 1519750022237845697213
+# <- meta.number.integer.decimal constant.numeric.value
+#^^^^^^^^^^ meta.number.integer.decimal constant.numeric.value invalid.illegal
+#           ^^^^^^^^^^^^ meta.number.integer.decimal constant.numeric.value
+
+ 0b01001104 0b
+#^^^^^^^^^ meta.number.integer.binary constant.numeric.value
+#         ^ -meta.number.integer
+#           ^^ meta.number.integer.binary constant.numeric.value invalid.illegal
+
+ 0o762123548 0o
+#^^^^^^^^^^ meta.number.integer.octal constant.numeric.value
+#          ^ -meta.number.integer
+#            ^^ meta.number.integer.octal constant.numeric.value invalid.illegal
+
+ 0x9f876d12e354abcg 0x da123
+#^^^^^^^^^^^^^^^^^ meta.number.integer.hexadecimal constant.numeric.value
+#                 ^ -meta.number.integer
+#                   ^^ meta.number.integer.hexadecimal constant.numeric.value invalid.illegal
+#                      ^^^^^ -meta.number.integer
+
+ false true
+#^^^^^ constant.language.boolean.false
+#      ^^^^ constant.language.boolean.true
