@@ -1,16 +1,23 @@
 # SYNTAX TEST "Packages/MonoMeson/meson.sublime-syntax"
 
 # a mesonbuild syntax test
-# <- punctuation.definition.comment comment.line.number-sign
-#^^^^^^^^^^^^^^^^^^^^^^^^^ punctuation.definition.comment
+# <- comment.line punctuation.definition.comment
+#^^^^^^^^^^^^^^^^^^^^^^^^^ comment.line
 
-'Hello, World! // not a comment'
-#  ^^^^^^^^^^ string.quoted.single
-#                   ^ string.quoted.single
+ 'Hello, World! // not a comment'
+#^ punctuation.definition.string.begin.meson
+#                               ^ punctuation.definition.string.end.meson
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.string string.quoted.single
 
-'''Tripled World! // still not a comment''';
-#   ^^^^^^^^^ string.quoted.triple
-#                     ^ string.quoted.triple
+ ' open string
+#^ punctuation.definition.string.begin.meson
+#^^^^^^^^^^^^^^ meta.string string.quoted.single
+#             ^ invalid.illegal.meson
+
+ '''Tripled World! // still not a comment''';
+#^^^ punctuation.definition.string.begin.meson
+#                                        ^^^ punctuation.definition.string.end.meson
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.string string.quoted.triple
 
 01234567890 1519750022237845697213
 # <- meta.number.integer.decimal constant.numeric.value
@@ -94,3 +101,6 @@
   add_global_arguments ]
 # ^^^^^^^^^^^^^^^^^^^^ support.function.builtin
 #                      ^ punctuation.section.brackets.end
+
+]
+#<- punctuation.section.brackets.end invalid.illegal.meson

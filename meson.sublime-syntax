@@ -101,6 +101,12 @@ contexts:
     - match: ''
       push: statements
 
+  prototype:
+    - match: ((\#).*)$ # handle comments everywhere by default
+      captures:
+        1: comment.line.meson
+        2: punctuation.definition.comment.meson
+
   statements:
     - include: try_statement-keyword
     - include: try_expression
@@ -142,7 +148,6 @@ contexts:
       scope: variable.other.readwrite.meson
 
   try_expression:
-    - include: try_comment
     - include: try_operator
     - include: try_literal
     - include: try_variable
@@ -158,7 +163,6 @@ contexts:
     - include: try_decimal-literal
     
     - include: try_array-literal
-    # - include: try_dictionary-literal
     - include: try_string-literal
 
   try_binary-literal:
@@ -188,6 +192,8 @@ contexts:
         2: invalid.illegal.meson
 
   try_array-literal:
+    - match: \]
+      scope: punctuation.section.brackets.end.test-meson invalid.illegal.meson
     - match: \[
       scope: punctuation.section.brackets.begin.test-meson
       push: inside_array-literal
@@ -203,34 +209,35 @@ contexts:
 
   try_string-literal:               # ("'" STRING_SIMPLE_VALUE "'") | ("'''" STRING_MULTILINE_VALUE "'''")
     - match: "'''"
-      scope: string.quoted.triple.meson
+      scope: punctuation.definition.string.begin.meson
       push: inside_string-multiline-value
     - match: "'"
-      scope: string.quoted.single.meson
+      scope: punctuation.definition.string.begin.meson
       push: inside_string-simple-value
 
   inside_string-multiline-value:      # '\.*?(\'\'\')'
+    - meta_include_prototype: false
     - meta_scope: meta.string.meson string.quoted.triple.meson
     - match: \\.
       scope: constant.character.escape.meson
     - match: "'''"
+      scope: punctuation.definition.string.end.meson
       pop: 1
 
   inside_string-simple-value:         # '\.*?(?<!\\)(\\\\)*?\' ?'
+    - meta_include_prototype: false
     - meta_scope: meta.string.meson string.quoted.single.meson
+    - match: \n
+      scope: invalid.illegal.meson
+      pop: 1
     - match: \\.
       scope: constant.character.escape.meson
     - match: "'"
+      scope: punctuation.definition.string.end.meson
       pop: 1
 
 
 ###################################[ HELPER ]###################################
-
-  try_comment:
-    - match: ((\#).*)$
-      captures:
-        1: punctuation.definition.comment.meson
-        2: comment.line.number-sign.meson
 
   else-pop:
     - match: (?=\S)
