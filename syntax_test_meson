@@ -104,3 +104,31 @@
 
 ]
 #<- punctuation.section.brackets.end invalid.illegal.meson
+
+ project('awesome-project', 'c', version : ver, license: :,)
+#^^^^^^^ support.function.builtin
+#       ^ punctuation.section.parens.begin
+#                         ^ punctuation.separator.sequence
+#                              ^ punctuation.separator.sequence
+#                                ^^^^^^^ variable.parameter
+#                                        ^ punctuation.separator.key-value keyword.operator.assignment
+#                                          ^^^ variable.other.readwrite
+#                                             ^ punctuation.separator.sequence
+#                                               ^^^^^^^ variable.parameter
+#                                                      ^ punctuation.separator.key-value keyword.operator.assignment
+#                                                        ^^ invalid.illegal
+#                                                          ^ punctuation.section.parens.end
+#        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call.arguments
+
+ inc = include_directories('include', fake_function(x, y))
+#^^^ variable.other.readwrite
+#    ^ keyword.operator.assignment
+#      ^^^^^^^^^^^^^^^^^^^ support.function.builtin
+#                         ^ punctuation.section.parens.begin
+#                                   ^ punctuation.separator.sequence
+#                                     ^^^^^^^^^^^^^ variable.function
+#                                                   ^ variable.other.readwrite
+#                                                    ^ punctuation.separator.sequence
+#                                                      ^ variable.other.readwrite
+#                                                       ^^ punctuation.section.parens.end
+#                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call.arguments

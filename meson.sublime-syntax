@@ -140,17 +140,39 @@ contexts:
       scope: keyword.operator.arithmetic.meson
 
   try_variable:
-    - match: '\b{{BUILTIN_FUNCTIONS}}\b'
-      scope: support.function.builtin.meson
-    - match: '\b{{BUILTIN_OBJECTS}}\b'
+    - match: \b{{BUILTIN_OBJECTS}}\b
       scope: variable.language.meson
-    - match: '\b{{IDENTIFIER}}\b'
+    - match: \b(({{BUILTIN_FUNCTIONS}})|({{IDENTIFIER}}))\s*(\()
+      captures:
+        2: support.function.builtin.meson
+        3: variable.function.meson
+        4: punctuation.section.parens.begin.meson
+      push: inside_function-call
+    - match: \b{{BUILTIN_FUNCTIONS}}\b
+      scope: support.function.builtin.meson
+    - match: \b{{IDENTIFIER}}\b
       scope: variable.other.readwrite.meson
 
   try_expression:
     - include: try_operator
     - include: try_literal
     - include: try_variable
+
+  inside_function-call:
+    - meta_content_scope: meta.sequence.meson meta.function-call.arguments.meson
+    - match: \)
+      scope: punctuation.section.parens.end.meson
+      pop: 1
+    - match: '\:'
+      scope: invalid.illegal.meson
+    - match: \b({{IDENTIFIER}})\s*(\:)\s*([\,\:]*)
+      captures:
+        1: variable.parameter.meson
+        2: punctuation.separator.key-value keyword.operator.assignment.meson
+        3: invalid.illegal.meson
+    - include: try_expression
+    - match: \,
+      scope: punctuation.separator.sequence.meson
 
 
 ##################################[ LITERALS ]##################################
