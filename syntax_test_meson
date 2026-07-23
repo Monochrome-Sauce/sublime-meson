@@ -5,18 +5,18 @@
 #^^^^^^^^^^^^^^^^^^^^^^^^^ comment.line
 
  'Hello, World! // not a comment'
-#^ punctuation.definition.string.begin.meson
-#                               ^ punctuation.definition.string.end.meson
+#^ punctuation.definition.string.begin
+#                               ^ punctuation.definition.string.end
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.string string.quoted.single
 
  ' open string
-#^ punctuation.definition.string.begin.meson
+#^ punctuation.definition.string.begin
 #^^^^^^^^^^^^^^ meta.string string.quoted.single
-#             ^ invalid.illegal.meson
+#             ^ invalid.illegal
 
  '''Tripled World! // still not a comment''';
-#^^^ punctuation.definition.string.begin.meson
-#                                        ^^^ punctuation.definition.string.end.meson
+#^^^ punctuation.definition.string.begin
+#                                        ^^^ punctuation.definition.string.end
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.string string.quoted.triple
 
 01234567890 1519750022237845697213
@@ -103,7 +103,7 @@
 #                      ^ punctuation.section.brackets.end
 
 ]
-#<- punctuation.section.brackets.end invalid.illegal.meson
+#<- punctuation.section.brackets.end invalid.illegal
 
  project('awesome-project', 'c', version : ver, license: :,)
 #^^^^^^^ support.function.builtin

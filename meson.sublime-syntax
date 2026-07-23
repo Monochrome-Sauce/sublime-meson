@@ -215,19 +215,19 @@ contexts:
 
   try_array-literal:
     - match: \]
-      scope: punctuation.section.brackets.end.test-meson invalid.illegal.meson
+      scope: punctuation.section.brackets.end.meson invalid.illegal.meson
     - match: \[
-      scope: punctuation.section.brackets.begin.test-meson
+      scope: punctuation.section.brackets.begin.meson
       push: inside_array-literal
   inside_array-literal:
     - meta_scope: meta.brackets.meson
     - meta_content_scope: meta.sequence.meson
     - match: \]
-      scope: punctuation.section.brackets.end.test-meson
+      scope: punctuation.section.brackets.end.meson
       pop: 1
     - include: try_expression
     - match: \,
-      scope: punctuation.separator.sequence.test-meson
+      scope: punctuation.separator.sequence.meson
 
   try_string-literal:               # ("'" STRING_SIMPLE_VALUE "'") | ("'''" STRING_MULTILINE_VALUE "'''")
     - match: "'''"
