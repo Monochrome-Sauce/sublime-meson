@@ -237,11 +237,26 @@ contexts:
       scope: punctuation.definition.string.begin.meson
       push: inside_string-simple-value
 
+  try_string-literal-character-escape:
+    - match: \\\\|\\'|\\a|\\b|\\f|\\n|\\r|\\t|\\v
+      scope: constant.character.escape.meson
+    - match: \\[0-7]{3}
+      scope: constant.character.escape.octal.meson
+    - match: \\x[0-9a-fA-F]{2}
+      scope: constant.character.escape.hex.meson
+    - match: \\u[0-9a-fA-F]{4}
+      scope: constant.character.escape.unicode.16bit.meson
+    - match: \\U[0-9a-fA-F]{8}
+      scope: constant.character.escape.unicode.32bit.meson
+    - match: \\N\{{{IDENTIFIER}}\}
+      scope: constant.character.escape.unicode.name.meson
+    - match: \\.
+      scope: constant.character.escape.meson invalid.illegal.meson
+
   inside_string-multiline-value:      # '\.*?(\'\'\')'
     - meta_include_prototype: false
     - meta_scope: meta.string.meson string.quoted.triple.meson
-    - match: \\.
-      scope: constant.character.escape.meson
+    - include: try_string-literal-character-escape
     - match: "'''"
       scope: punctuation.definition.string.end.meson
       pop: 1
@@ -252,8 +267,7 @@ contexts:
     - match: \n
       scope: invalid.illegal.meson
       pop: 1
-    - match: \\.
-      scope: constant.character.escape.meson
+    - include: try_string-literal-character-escape
     - match: "'"
       scope: punctuation.definition.string.end.meson
       pop: 1

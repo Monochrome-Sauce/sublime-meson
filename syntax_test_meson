@@ -14,6 +14,11 @@
 #^^^^^^^^^^^^^^ meta.string string.quoted.single
 #             ^ invalid.illegal
 
+ '\'
+#^^^^ meta.string string.quoted.single
+# ^^ constant.character.escape
+#   ^ invalid.illegal
+
  '''Tripled World! // still not a comment''';
 #^^^ punctuation.definition.string.begin
 #                                        ^^^ punctuation.definition.string.end
