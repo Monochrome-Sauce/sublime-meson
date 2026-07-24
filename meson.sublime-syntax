@@ -147,7 +147,7 @@ contexts:
         2: support.function.builtin.meson
         3: variable.function.meson
         4: punctuation.section.parens.begin.meson
-      push: inside_function-call
+      push: pops1_inside-function-call
     - match: \b(({{BUILTIN_FUNCTIONS}})|({{IDENTIFIER}}))\b
       captures:
         2: support.function.builtin.meson
@@ -161,7 +161,7 @@ contexts:
     - include: try_literal
     - include: try_variable
 
-  inside_function-call:
+  pops1_inside-function-call:
     - meta_content_scope: meta.sequence.meson meta.function-call.arguments.meson
     - match: \)
       scope: punctuation.section.parens.end.meson
@@ -233,8 +233,8 @@ contexts:
       scope: punctuation.section.brackets.end.meson invalid.illegal.meson
     - match: \[
       scope: punctuation.section.brackets.begin.meson
-      push: inside_array-literal
-  inside_array-literal:
+      push: pops1_inside-array-literal
+  pops1_inside-array-literal:
     - meta_scope: meta.brackets.meson
     - meta_content_scope: meta.sequence.meson
     - match: \]
@@ -247,10 +247,10 @@ contexts:
   try_string-literal:               # ("'" STRING_SIMPLE_VALUE "'") | ("'''" STRING_MULTILINE_VALUE "'''")
     - match: "'''"
       scope: punctuation.definition.string.begin.meson
-      push: inside_string-multiline-value
+      push: pops1_inside-string-multiline-value
     - match: "'"
       scope: punctuation.definition.string.begin.meson
-      push: inside_string-simple-value
+      push: pops1_inside-string-simple-value
 
   try_string-literal-character-escape:
     - match: \\\\|\\'|\\a|\\b|\\f|\\n|\\r|\\t|\\v
@@ -268,7 +268,7 @@ contexts:
     - match: \\.
       scope: constant.character.escape.meson invalid.illegal.meson
 
-  inside_string-multiline-value:      # '\.*?(\'\'\')'
+  pops1_inside-string-multiline-value:      # '\.*?(\'\'\')'
     - meta_include_prototype: false
     - meta_scope: meta.string.meson string.quoted.triple.meson
     - include: try_string-literal-character-escape
@@ -276,7 +276,7 @@ contexts:
       scope: punctuation.definition.string.end.meson
       set: pops1_after-expression
 
-  inside_string-simple-value:         # '\.*?(?<!\\)(\\\\)*?\' ?'
+  pops1_inside-string-simple-value:         # '\.*?(?<!\\)(\\\\)*?\' ?'
     - meta_include_prototype: false
     - meta_scope: meta.string.meson string.quoted.single.meson
     - match: \n
@@ -290,14 +290,14 @@ contexts:
 
 ###################################[ HELPER ]###################################
 
-  else-pop:
+  else-pop1:
     - match: (?=\S)
       pop: 1
 
-  eol-pop:
+  eol-pop1:
     - match: $
       pop: 1
 
-  immediately-pop:
+  immediately-pop1:
     - match: ''
       pop: 1
