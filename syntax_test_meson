@@ -125,15 +125,21 @@
 #                                                          ^ punctuation.section.parens.end
 #        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call.arguments
 
- inc = include_directories('include', fake_function(x, y))
+ inc = include_directories('include'.property, fake_function(x, y))
 #^^^ variable.other.readwrite
 #    ^ keyword.operator.assignment
 #      ^^^^^^^^^^^^^^^^^^^ support.function.builtin
 #                         ^ punctuation.section.parens.begin
-#                                   ^ punctuation.separator.sequence
-#                                     ^^^^^^^^^^^^^ variable.function
-#                                                   ^ variable.other.readwrite
-#                                                    ^ punctuation.separator.sequence
-#                                                      ^ variable.other.readwrite
-#                                                       ^^ punctuation.section.parens.end
-#                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call.arguments
+#                                   ^ punctuation.accessor.dot
+#                                    ^^^^^^^^ variable.other.readwrite
+#                                            ^ punctuation.separator.sequence
+#                                              ^^^^^^^^^^^^^ variable.function
+#                                                            ^ variable.other.readwrite
+#                                                             ^ punctuation.separator.sequence
+#                                                               ^ variable.other.readwrite
+#                                                                ^^ punctuation.section.parens.end
+#                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.sequence meta.function-call.arguments
+
+.expressionless
+#<- punctuation.accessor.dot invalid.illegal
+#^^^^^^^^^^^^^^ variable.other.readwrite

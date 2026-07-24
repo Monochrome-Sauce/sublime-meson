@@ -148,12 +148,15 @@ contexts:
         3: variable.function.meson
         4: punctuation.section.parens.begin.meson
       push: inside_function-call
-    - match: \b{{BUILTIN_FUNCTIONS}}\b
-      scope: support.function.builtin.meson
-    - match: \b{{IDENTIFIER}}\b
-      scope: variable.other.readwrite.meson
+    - match: \b(({{BUILTIN_FUNCTIONS}})|({{IDENTIFIER}}))\b
+      captures:
+        2: support.function.builtin.meson
+        3: variable.other.readwrite.meson
+      push: pops1_after-expression
 
   try_expression:
+    - match: \.
+      scope: punctuation.accessor.dot.meson invalid.illegal.meson
     - include: try_operator
     - include: try_literal
     - include: try_variable
@@ -162,7 +165,7 @@ contexts:
     - meta_content_scope: meta.sequence.meson meta.function-call.arguments.meson
     - match: \)
       scope: punctuation.section.parens.end.meson
-      pop: 1
+      set: pops1_after-expression
     - match: '\:'
       scope: invalid.illegal.meson
     - match: \b({{IDENTIFIER}})\s*(\:)\s*([\,\:]*)
@@ -174,6 +177,13 @@ contexts:
     - match: \,
       scope: punctuation.separator.sequence.meson
 
+  pops1_after-expression:
+    - match: (?!\.)
+      pop: 1
+    - match: \.
+      scope: punctuation.accessor.dot.meson
+    - include: try_expression
+    - include: immediately-pop
 
 ##################################[ LITERALS ]##################################
 
@@ -190,21 +200,25 @@ contexts:
   try_binary-literal:
     - match: \b0b[01]+
       scope: meta.number.integer.binary.meson constant.numeric.value.meson
+      push: pops1_after-expression
     - match: \b0b[^01\s]*
       scope: meta.number.integer.binary.meson constant.numeric.value.meson invalid.illegal.meson
   try_boolean-literal:
     - match: \bfalse\b
       scope: constant.language.boolean.false.meson
+      push: pops1_after-expression
     - match: \btrue\b
       scope: constant.language.boolean.true.meson
   try_hex-literal:
     - match: \b0x[a-fA-F0-9]+
       scope: meta.number.integer.hexadecimal.meson constant.numeric.value.meson
+      push: pops1_after-expression
     - match: \b0x[^a-fA-F0-9\s]*
       scope: meta.number.integer.hexadecimal.meson constant.numeric.value.meson invalid.illegal.meson
   try_octal-literal:
     - match: \b0o[0-7]+
       scope: meta.number.integer.octal.meson constant.numeric.value.meson
+      push: pops1_after-expression
     - match: \b0o[^0-7\s]*
       scope: meta.number.integer.octal.meson constant.numeric.value.meson invalid.illegal.meson
   try_decimal-literal:
@@ -212,6 +226,7 @@ contexts:
       captures:
         1: meta.number.integer.decimal.meson constant.numeric.value.meson
         2: invalid.illegal.meson
+      push: pops1_after-expression
 
   try_array-literal:
     - match: \]
@@ -224,7 +239,7 @@ contexts:
     - meta_content_scope: meta.sequence.meson
     - match: \]
       scope: punctuation.section.brackets.end.meson
-      pop: 1
+      set: pops1_after-expression
     - include: try_expression
     - match: \,
       scope: punctuation.separator.sequence.meson
@@ -259,7 +274,7 @@ contexts:
     - include: try_string-literal-character-escape
     - match: "'''"
       scope: punctuation.definition.string.end.meson
-      pop: 1
+      set: pops1_after-expression
 
   inside_string-simple-value:         # '\.*?(?<!\\)(\\\\)*?\' ?'
     - meta_include_prototype: false
@@ -270,7 +285,7 @@ contexts:
     - include: try_string-literal-character-escape
     - match: "'"
       scope: punctuation.definition.string.end.meson
-      pop: 1
+      set: pops1_after-expression
 
 
 ###################################[ HELPER ]###################################
