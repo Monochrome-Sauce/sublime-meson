@@ -131,17 +131,20 @@ contexts:
 
   try_operator:
     - match: \b(and|in|not|or)\b
-      scope: keyword.operator.logical.meson
+      scope: keyword.operator.word.meson
     - match: \+?=
       scope: keyword.operator.assignment.meson
     - match: ([=!><]=)|[><]
       scope: keyword.operator.comparison.meson
     - match: \+|\-|\*|\/|\%
       scope: keyword.operator.arithmetic.meson
+    - match: '\?|\:'
+      scope: keyword.operator.ternary.meson
 
   try_variable:
     - match: \b{{BUILTIN_OBJECTS}}\b
       scope: variable.language.meson
+      push: pops1_after-expression
     - match: \b(({{BUILTIN_FUNCTIONS}})|({{IDENTIFIER}}))\s*(\()
       captures:
         2: support.function.builtin.meson
@@ -178,12 +181,14 @@ contexts:
       scope: punctuation.separator.sequence.meson
 
   pops1_after-expression:
+    - match: \s*(?=\S)
     - match: (?!\.)
       pop: 1
     - match: \.
       scope: punctuation.accessor.dot.meson
     - include: try_expression
     - include: immediately-pop
+
 
 ##################################[ LITERALS ]##################################
 

@@ -94,6 +94,13 @@
 #     ^ keyword.operator.comparison
 #       ^^ keyword.operator.comparison
 
+ expr ? 'true' : 'false'
+#^^^^ variable.other.readwrite
+#       ^^^^^ string.quoted.single
+#     ^ keyword.operator.ternary
+#              ^ keyword.operator.ternary
+#                 ^^^^^^ string.quoted.single
+
 [ build_machine,host_machine,  meson somevar, target_machine ,
 #<- punctuation.section.brackets.begin
 # ^^^^^^^^^^^^^ variable.language
