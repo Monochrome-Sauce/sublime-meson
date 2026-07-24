@@ -11,15 +11,7 @@ file_extensions:
   - meson_options.txt
 
 variables:
-  ADDITIVE_OPERATOR: (\+|\-)
-  ASSIGNMENT_OPERATOR: (=|\+=)
-  EQUALITY_OPERATOR: (==|!=)
   IDENTIFIER: '[a-zA-Z_][a-zA-Z_0-9]*'
-  JUMP_STATEMENT: (break|continue)\n
-  KEYWORDS: '(and|break|continue|elif|else|endforeach|endif|false|foreach|if|in|not|or)'
-  MULTIPLICATIVE_OPERATOR: \*|\/|\%
-  RELATIONAL_OPERATOR: (>|<|>=|<=|in|(not\bin))
-  
   BUILTIN_FUNCTIONS: |-
     (?x:
       add_global_arguments
@@ -82,13 +74,10 @@ variables:
     | vcs_tag
     | warning
     )
-  
   ELEMENTARY_TYPES: |-
     (?x: any | array | bool | dict | int | str | void)
-  
   BUILTIN_OBJECTS: |-
     (?x: build_machine | host_machine | meson | target_machine)
-  
   METHODS_MACHINE: |-
     (?x: cpu | cpu_family | endian | kernel | subsystem | system)
 
