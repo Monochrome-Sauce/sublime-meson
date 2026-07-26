@@ -49,22 +49,23 @@
 #^^^^^ constant.language.boolean.false
 #      ^^^^ constant.language.boolean.true
 
- break
-#^^^^^ keyword.control.flow.break
- continue
-#^^^^^^^^ keyword.control.flow.continue
- elif
-#^^^^ keyword.control.conditional.elseif
- else
-#^^^^ keyword.control.conditional.else
- endforeach
-#^^^^^^^^^^ keyword.control.loop.end
- endif
-#^^^^^ keyword.control.conditional.end
- foreach
-#^^^^^^^ keyword.control.loop.for
  if
-#^^ keyword.control.conditional.if
+#^^ keyword.control.conditional.if -invalid.illegal
+ elif
+#^^^^ keyword.control.conditional.elseif -invalid.illegal
+ else
+#^^^^ keyword.control.conditional.else -invalid.illegal
+ endif
+#^^^^^ keyword.control.conditional.end -invalid.illegal
+ foreach
+#^^^^^^^ keyword.control.loop.for -invalid.illegal
+ break
+#^^^^^ keyword.control.flow.break -invalid.illegal
+ continue
+#^^^^^^^^ keyword.control.flow.continue -invalid.illegal
+ endforeach
+#^^^^^^^^^^ keyword.control.loop.end -invalid.illegal
+
 
  abreak
 #^^^^^^ variable.other.readwrite

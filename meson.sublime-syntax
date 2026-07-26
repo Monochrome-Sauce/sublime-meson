@@ -97,26 +97,8 @@ contexts:
         2: punctuation.definition.comment.meson
 
   statements:
-    - include: try_statement-keyword
+    - include: try_control-flow
     - include: try_expression
-
-  try_statement-keyword:
-    - match: \bbreak\b
-      scope: keyword.control.flow.break.meson
-    - match: \bcontinue\b
-      scope: keyword.control.flow.continue.meson
-    - match: \belif\b
-      scope: keyword.control.conditional.elseif.meson
-    - match: \belse\b
-      scope: keyword.control.conditional.else.meson
-    - match: \bendforeach\b
-      scope: keyword.control.loop.end.meson
-    - match: \bendif\b
-      scope: keyword.control.conditional.end.meson
-    - match: \bforeach\b
-      scope: keyword.control.loop.for.meson
-    - match: \bif\b
-      scope: keyword.control.conditional.if.meson
 
   try_operator:
     - match: \b(and|in|not|or)\b
@@ -177,6 +159,57 @@ contexts:
       scope: punctuation.accessor.dot.meson
     - include: try_expression
     - include: immediately-pop
+
+
+################################[ CONTROL FLOW ]################################
+
+  try_control-flow:
+    - match: \bbreak\b
+      scope: keyword.control.flow.break.meson invalid.illegal.meson
+    - match: \bcontinue\b
+      scope: keyword.control.flow.continue.meson invalid.illegal.meson
+    - match: \belif\b
+      scope: keyword.control.conditional.elseif.meson invalid.illegal.meson
+    - match: \belse\b
+      scope: keyword.control.conditional.else.meson invalid.illegal.meson
+    - match: \bendforeach\b
+      scope: keyword.control.loop.end.meson invalid.illegal.meson
+    - match: \bendif\b
+      scope: keyword.control.conditional.end.meson invalid.illegal.meson
+    - match: \bforeach\b
+      scope: keyword.control.loop.for.meson
+      push: pops1_inside-foreach
+    - match: \bif\b
+      scope: keyword.control.conditional.if.meson
+      push: pops1_inside-if
+
+  pops1_inside-if:
+    - match: \belif\b
+      scope: keyword.control.conditional.elseif.meson
+      set: pops1_inside-if
+    - match: \belse\b
+      scope: keyword.control.conditional.else.meson
+      set: pops1_inside-else
+    - match: \bendif\b
+      scope: keyword.control.conditional.end.meson
+      pop: 1
+    - include: statements
+
+  pops1_inside-else:
+    - match: \bendif\b
+      scope: keyword.control.conditional.end.meson
+      pop: 1
+    - include: statements
+
+  pops1_inside-foreach:
+    - match: \bendforeach\b
+      scope: keyword.control.loop.end.meson
+      pop: 1
+    - match: \bbreak\n
+      scope: keyword.control.flow.break.meson
+    - match: \bcontinue\n
+      scope: keyword.control.flow.continue.meson
+    - include: statements
 
 
 ##################################[ LITERALS ]##################################
