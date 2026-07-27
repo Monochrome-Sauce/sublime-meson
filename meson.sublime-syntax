@@ -132,6 +132,17 @@ contexts:
   try_expression:
     - match: \.
       scope: punctuation.accessor.dot.meson invalid.illegal.meson
+    - match: \(
+      scope: punctuation.section.parens.begin.meson
+      push:
+        - meta_scope: meta.parens.meson
+        - match: \)
+          scope: punctuation.section.parens.end.meson
+          pop: 1
+        - include: try_expression
+    - match: \)
+      scope: punctuation.section.parens.end.meson invalid.illegal.meson
+      
     - include: try_operator
     - include: try_literal
     - include: try_variable
