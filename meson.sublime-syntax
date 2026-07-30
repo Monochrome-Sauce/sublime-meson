@@ -296,6 +296,16 @@ contexts:
       scope: punctuation.separator.sequence.meson
 
   try_string-literal:               # ("'" STRING_SIMPLE_VALUE "'") | ("'''" STRING_MULTILINE_VALUE "'''")
+    - match: f(?=')
+      scope: storage.type.string.meson
+      push:
+        - match: "'''"
+          scope: punctuation.definition.string.begin.meson
+          set: pops1_inside-fmt-string-multiline
+        - match: "'"
+          scope: punctuation.definition.string.begin.meson
+          set: pops1_inside-fmt-string-simple
+        - include: else-pop1
     - match: "'''"
       scope: punctuation.definition.string.begin.meson
       push: pops1_inside-string-multiline-value
@@ -319,11 +329,44 @@ contexts:
     - match: \\.
       scope: constant.character.escape.meson invalid.illegal.meson
 
+  try_string-literal-interpolation:
+    - match: \@
+      scope: punctuation.section.interpolation.begin.meson
+      push:
+        - meta_content_scope: meta.interpolation.meson
+        - clear_scopes: 1   # should remove the "string.quoted" scope
+        - include: try_literal
+        - include: try_variable
+        - match: \@
+          scope: punctuation.section.interpolation.end.meson
+          pop: 1
+
+  pops1_inside-fmt-string-multiline:
+    - meta_include_prototype: false
+    - meta_scope: meta.string.meson string.quoted.triple.meson
+    - include: try_string-literal-character-escape
+    - include: try_string-literal-interpolation
+    - match: "'''"
+      scope: punctuation.definition.string.end.meson
+      set: pops1_after-expression
+
   pops1_inside-string-multiline-value:      # '\.*?(\'\'\')'
     - meta_include_prototype: false
     - meta_scope: meta.string.meson string.quoted.triple.meson
     - include: try_string-literal-character-escape
     - match: "'''"
+      scope: punctuation.definition.string.end.meson
+      set: pops1_after-expression
+
+  pops1_inside-fmt-string-simple:
+    - meta_include_prototype: false
+    - meta_scope: meta.string.meson string.quoted.single.meson
+    - match: \n
+      scope: invalid.illegal.meson
+      pop: 1
+    - include: try_string-literal-character-escape
+    - include: try_string-literal-interpolation
+    - match: "'"
       scope: punctuation.definition.string.end.meson
       set: pops1_after-expression
 
