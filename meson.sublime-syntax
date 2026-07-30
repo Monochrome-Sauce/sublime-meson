@@ -295,7 +295,7 @@ contexts:
     - match: \,
       scope: punctuation.separator.sequence.meson
 
-  try_string-literal:               # ("'" STRING_SIMPLE_VALUE "'") | ("'''" STRING_MULTILINE_VALUE "'''")
+  try_string-literal:
     - match: f(?=')
       scope: storage.type.string.meson
       push:
@@ -308,10 +308,10 @@ contexts:
         - include: else-pop1
     - match: "'''"
       scope: punctuation.definition.string.begin.meson
-      push: pops1_inside-string-multiline-value
+      push: pops1_inside-string-multiline
     - match: "'"
       scope: punctuation.definition.string.begin.meson
-      push: pops1_inside-string-simple-value
+      push: pops1_inside-string-simple
 
   try_string-literal-character-escape:
     - match: \\\\|\\'|\\a|\\b|\\f|\\n|\\r|\\t|\\v
@@ -350,7 +350,7 @@ contexts:
       scope: punctuation.definition.string.end.meson
       set: pops1_after-expression
 
-  pops1_inside-string-multiline-value:      # '\.*?(\'\'\')'
+  pops1_inside-string-multiline:
     - meta_include_prototype: false
     - meta_scope: meta.string.meson string.quoted.triple.meson
     - include: try_string-literal-character-escape
@@ -370,7 +370,7 @@ contexts:
       scope: punctuation.definition.string.end.meson
       set: pops1_after-expression
 
-  pops1_inside-string-simple-value:         # '\.*?(?<!\\)(\\\\)*?\' ?'
+  pops1_inside-string-simple:
     - meta_include_prototype: false
     - meta_scope: meta.string.meson string.quoted.single.meson
     - match: \n
