@@ -189,7 +189,7 @@ contexts:
       scope: keyword.control.conditional.end.meson invalid.illegal.meson
     - match: \bforeach\b
       scope: keyword.control.loop.for.meson
-      push: pops1_foreach-body
+      push: pops1_foreach-condition
     - match: \bif\b
       scope: keyword.control.conditional.if.meson
       push: pops1_if-body
@@ -211,6 +211,19 @@ contexts:
       scope: keyword.control.conditional.end.meson
       pop: 1
     - include: statements
+
+  pops1_foreach-condition:
+    - match: '\:'
+      scope: punctuation.separator.key-value keyword.operator.assignment.meson
+      set: pops1_foreach-finish-condition
+    - match: \,
+      scope: punctuation.separator.sequence.meson
+    - include: try_expression
+
+  pops1_foreach-finish-condition:
+    - include: try_expression
+    - match: $
+      set: pops1_foreach-body
 
   pops1_foreach-body:
     - match: \bendforeach\b

@@ -57,8 +57,14 @@
 #^^^^ keyword.control.conditional.else -invalid.illegal
  endif
 #^^^^^ keyword.control.conditional.end -invalid.illegal
- foreach
+ foreach i : range( 0x10 )
 #^^^^^^^ keyword.control.loop.for -invalid.illegal
+#        ^ variable.other.readwrite
+#          ^ punctuation.separator.key-value keyword.operator.assignment
+#            ^^^^^ support.function.builtin
+#                 ^ punctuation.section.parens.begin
+#                   ^^^^ meta.sequence meta.function-call.arguments
+#                        ^ punctuation.section.parens.end
  break
 #^^^^^ keyword.control.flow.break -invalid.illegal
  continue
