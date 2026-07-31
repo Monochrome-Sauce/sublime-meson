@@ -1,0 +1,7 @@
+                  Meson v26.07.0
+                  ==============
+
+BREAKING CHANGES
+
+- Changed versioning to use dates: '<YY>.<MM>.<patch>'.
+- Removed all Python functionality as it's incomplete, unmaintained and pretty much useless.

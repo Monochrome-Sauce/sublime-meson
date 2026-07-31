@@ -1,7 +1,0 @@
-                  Meson v2607-0
-                  =============
-
-BREAKING CHANGES
-
-- Changed versioning to use dates: '<YY><MM>-<minor>'.
-- Removed all Python functionality as it's incomplete, unmaintained and pretty much useless.
