@@ -166,5 +166,26 @@
 #                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.sequence meta.function-call.arguments
 
 .expressionless
-#<- punctuation.accessor.dot invalid.illegal
+#<- punctuation.accessor.dot -invalid.illegal
 #^^^^^^^^^^^^^^ variable.other.readwrite
+
+ returnsCallable(true, 10)('hello')
+#^^^^^^^^^^^^^^^ variable.function.meson
+#               ^ punctuation.section.parens.begin
+#                    ^ punctuation.separator.sequence
+#                        ^ punctuation.section.parens.end
+#                ^^^^^^^^ meta.sequence meta.function-call.arguments
+#                         ^ punctuation.section.parens.begin
+#                                 ^ punctuation.section.parens.end
+#                          ^^^^^^^ meta.sequence meta.function-call.arguments
+    .method1().method2({'abc': 26})
+#   ^ punctuation.accessor.dot
+#    ^^^^^^^ variable.function
+#             ^ punctuation.accessor.dot
+#              ^^^^^^^ variable.function
+#                      ^ punctuation.section.mapping.begin
+#                       ^^^^^ meta.mapping.key meta.string
+#                            ^ punctuation.separator.key-value
+#                              ^^ meta.mapping.value meta.number.integer
+#                       ^^^^^^^^^ meta.mapping
+#                                ^ punctuation.section.mapping.end

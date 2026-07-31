@@ -91,11 +91,12 @@ contexts:
       push: statements
 
   prototype:
-    - match: \s*(?=\S) # skip whitespace
+    - match: \s*(?=\S) # skip preceeding whitespace
     - match: ((\#).*)$ # handle comments everywhere by default
       captures:
         1: comment.line.meson
         2: punctuation.definition.comment.meson
+    - match: \s*(?=\S) # skip incoming whitespace
 
   statements:
     - include: try_control-flow
@@ -131,7 +132,7 @@ contexts:
 
   try_expression:
     - match: \.
-      scope: punctuation.accessor.dot.meson invalid.illegal.meson
+      scope: punctuation.accessor.dot.meson
     - match: \(
       scope: punctuation.section.parens.begin.meson
       push:
@@ -164,10 +165,11 @@ contexts:
       scope: punctuation.separator.sequence.meson
 
   pops1_after-expression:
-    - match: (?!\.)
+    - match: \(
+      scope: punctuation.section.parens.begin.meson
+      set: pops1_inside-function-call
+    - match: \s*(?!\.)
       pop: 1
-    - match: \.
-      scope: punctuation.accessor.dot.meson
     - include: try_expression
     - include: immediately-pop1
 
@@ -301,7 +303,7 @@ contexts:
     - match: \}
       scope: punctuation.section.mapping.end.meson
       set: pops1_after-expression
-  pops1_seperator-dictionary-literal:
+  pops1_separator-dictionary-literal:
     - match: \,
       scope: punctuation.separator.sequence.meson
       set: pops1_inside-dictionary-literal
@@ -326,7 +328,7 @@ contexts:
     - meta_include_prototype: false
     - meta_content_scope: meta.mapping.meson
     - include: pops1_end-dictionary-literal
-    - include: pops1_seperator-dictionary-literal
+    - include: pops1_separator-dictionary-literal
     - match: (?=\S)
       set: pops1_inside-dictionary-value
 
@@ -340,7 +342,7 @@ contexts:
     - meta_include_prototype: false
     - meta_content_scope: meta.mapping.meson
     - include: pops1_end-dictionary-literal
-    - include: pops1_seperator-dictionary-literal
+    - include: pops1_separator-dictionary-literal
 
   pops1_inside-directory-key:
     - meta_scope: meta.mapping.key.meson
