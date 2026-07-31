@@ -124,6 +124,17 @@
 ]
 #<- punctuation.section.brackets.end invalid.illegal
 
+{ 'key' : 'value' }
+#<- punctuation.section.mapping.begin
+# ^^^^^ meta.mapping.key meta.string
+#       ^ punctuation.separator.key-value
+#         ^^^^^^^ meta.mapping.value meta.string
+#^^^^^^^^^^^^^^^^^ meta.mapping
+#                 ^ punctuation.section.mapping.end
+
+}
+#<- punctuation.section.braces.end invalid.illegal
+
  project('awesome-project', 'c', version : ver, license: :,)
 #^^^^^^^ support.function.builtin
 #       ^ punctuation.section.parens.begin

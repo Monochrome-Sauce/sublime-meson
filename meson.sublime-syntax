@@ -246,6 +246,7 @@ contexts:
     - include: try_decimal-literal
     
     - include: try_array-literal
+    - include: try_dictionary-literal
     - include: try_string-literal
 
   try_binary-literal:
@@ -294,6 +295,58 @@ contexts:
     - include: try_expression
     - match: \,
       scope: punctuation.separator.sequence.meson
+
+
+  pops1_end-dictionary-literal:
+    - match: \}
+      scope: punctuation.section.mapping.end.meson
+      set: pops1_after-expression
+  pops1_seperator-dictionary-literal:
+    - match: \,
+      scope: punctuation.separator.sequence.meson
+      set: pops1_inside-dictionary-literal
+
+  try_dictionary-literal:
+    - match: \}
+      scope: punctuation.section.braces.end.meson invalid.illegal.meson
+    - match: \{
+      scope: punctuation.section.mapping.begin.meson
+      push: pops1_inside-dictionary-literal
+
+  pops1_inside-dictionary-literal:
+    - meta_scope: meta.mapping.meson
+    - include: pops1_end-dictionary-literal
+    - match: '\:'
+      scope: punctuation.separator.key-value
+      set: pops1_dictionary-value
+    - match: (?=\S)
+      set: pops1_inside-directory-key
+
+  pops1_dictionary-value:
+    - meta_include_prototype: false
+    - meta_content_scope: meta.mapping.meson
+    - include: pops1_end-dictionary-literal
+    - include: pops1_seperator-dictionary-literal
+    - match: (?=\S)
+      set: pops1_inside-dictionary-value
+
+  pops1_inside-dictionary-value:
+    - meta_content_scope: meta.mapping.value.meson
+    - match: (?=\s*[,}])
+      set: pops1_after-dictionary-value
+    - include: try_expression
+
+  pops1_after-dictionary-value:
+    - meta_include_prototype: false
+    - meta_content_scope: meta.mapping.meson
+    - include: pops1_end-dictionary-literal
+    - include: pops1_seperator-dictionary-literal
+
+  pops1_inside-directory-key:
+    - meta_scope: meta.mapping.key.meson
+    - match: (?=\s*[,:}])
+      set: pops1_inside-dictionary-literal
+    - include: try_expression
 
   try_string-literal:
     - match: f(?=')
