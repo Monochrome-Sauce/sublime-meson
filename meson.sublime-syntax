@@ -11,19 +11,8 @@ file_extensions:
   - meson_options.txt
 
 variables:
-  identifier_continue: '[[:alnum:]_]'
-  identifier: '[[:alpha:]_]{{identifier_continue}}*\b'
-  identifier_constant: '(?:[\p{Lu}_][\p{Lu}_\d]*)?[\p{Lu}]{2,}[\p{Lu}_\d]*\b'  # require 2 consecutive upper-case letters
-  digits: (?:\d+(?:_\d+)*)
-  path: '({{identifier}}[ ]*\.[ ]*)*{{identifier}}'
-  illegal_names: (?:and|break|continue|elif|else|endforeach|endif|false|foreach|if|in|not|or)
-  augmented_assignment_operators: |-
-    (?x: \+= )
-  assignment_operator: '=(?!=)'
-  colon: ':'
-  hspace: '[ \t]'
-  line_end: '(?:{{hspace}}*[\n#])'
-  builtin_functions: |-
+  IDENTIFIER: '[a-zA-Z_][a-zA-Z_0-9]*'
+  BUILTIN_FUNCTIONS: |-
     (?x:
       add_global_arguments
     | add_global_link_arguments
@@ -42,6 +31,7 @@ variables:
     | custom_target
     | debug
     | declare_dependency
+    | default
     | dependency
     | disabler
     | environment
@@ -83,892 +73,382 @@ variables:
     | unset_variable
     | vcs_tag
     | warning
-    )\b
-  
-  builtin_variables: |-
-    (?x: (?:
-    # builtin objects
-    build_machine | host_machine | meson | target_machine
-    )\b )
+    )
+  ELEMENTARY_TYPES: |-
+    (?x: any | array | bool | dict | int | str | void)
+  BUILTIN_OBJECTS: |-
+    (?x: build_machine | host_machine | meson | target_machine)
+  METHODS_MACHINE: |-
+    (?x: cpu | cpu_family | endian | kernel | subsystem | system)
 
 
-################################################################################
+####################################[ MAIN ]####################################
 
 contexts:
   main:
     - meta_include_prototype: false
     - match: ''
-      push: [statements]
+      push: statements
+
+  prototype:
+    - match: \s*(?=\S) # skip preceeding whitespace
+    - match: ((\#).*)$ # handle comments everywhere by default
+      captures:
+        1: comment.line.meson
+        2: punctuation.definition.comment.meson
+    - match: \s*(?=\S) # skip incoming whitespace
 
   statements:
-    - include: line-statements
-    - include: block-statements
-    - include: statement-terminators
-    - include: expression-as-a-statement
+    - include: try_control-flow
+    - include: try_expression
 
-  block-statements:
-    - include: conditional-statements
-    - include: foreach-statements
-
-  line-statements:
-    - include: assignment-statements
-    - include: flow-statements
-
-  # Always include these last and only one at a time!
-  expression-as-a-statement:
-    - include: line-continuations
-    - include: expressions-common
-    - include: qualified-name
-
-  expression-in-a-statement:
-    # Differs from expression-as-a-statement in that:
-    # - invalid-name matches will pop the current context
-    - include: expressions-common
-    - include: illegal-name
-    - include: qualified-name
-
-  expression-in-a-group:  # Always include this last!
-    # Differs from expression-in-a-statement in that:
-    # - no assignment expressions allowed
-    # - accessor matching continues into the next line
-    - include: line-continuations
-    - include: expressions-common
-    - include: illegal-name
-    - include: qualified-name
-
-  expression-in-a-sequence:  # Always include this last!
-    # Differs from expression-in-a-statement in that:
-    # - accessor matching continues into the next line
-    - include: line-continuations
-    - include: expressions-common
-    - include: illegal-name
-    - include: qualified-name
-
-  expressions-common:
-    - include: dictionaries
-    - include: groups
-    - include: lists
-    - include: comments
-    - include: constants
-    - include: numbers
-    - include: strings
-    - include: operators
-    - include: function-calls
-    - include: items
-    - include: illegal-stray-brackets
-    - include: illegal-stray-braces
-    - include: illegal-stray-parens
-
-
-####[ COMMENTS ]################################################################
-
-  comments:
-    - match: \#
-      scope: punctuation.definition.comment.meson
-      push:
-        - comment-body
-
-  comment-body:
-    - meta_scope: comment.line.number-sign.meson
-    - match: \n
-      pop: 1
-
-
-####[ ASSIGNMENT STATEMENTS ]###################################################
-
-  assignment-statements:
-    - match: '{{augmented_assignment_operators}}'
-      scope: keyword.operator.assignment.augmented.meson
-      push: assignment-statement-value
-    - match: '{{assignment_operator}}'
+  try_operator:
+    - match: \b(and|in|not|or)\b
+      scope: keyword.operator.word.meson
+    - match: \+?=
       scope: keyword.operator.assignment.meson
+    - match: ([=!><]=)|[><]
+      scope: keyword.operator.comparison.meson
+    - match: \+|\-|\*|\/|\%
+      scope: keyword.operator.arithmetic.meson
+    - match: '\?|\:'
+      scope: keyword.operator.ternary.meson
 
-  assignment-statement-value:
-    - include: line-continuation-or-pop
-    - include: expression-in-a-statement
+  try_variable:
+    - match: \b{{ELEMENTARY_TYPES}}\b
+      scope: support.type.meson
+    - match: \b{{BUILTIN_OBJECTS}}\b
+      scope: variable.language.meson
+      push: pops1_after-expression
+    - match: \b(({{BUILTIN_FUNCTIONS}})|({{IDENTIFIER}}))\s*(\()
+      captures:
+        2: support.function.builtin.meson
+        3: variable.function.meson
+        4: punctuation.section.parens.begin.meson
+      push: pops1_inside-function-call
+    - match: \b(({{BUILTIN_FUNCTIONS}})|({{IDENTIFIER}}))\b
+      captures:
+        2: support.function.builtin.meson
+        3: variable.other.readwrite.meson
+      push: pops1_after-expression
+
+  try_expression:
+    - match: \.
+      scope: punctuation.accessor.dot.meson
+    - match: \(
+      scope: punctuation.section.parens.begin.meson
+      push:
+        - meta_scope: meta.parens.meson
+        - match: \)
+          scope: punctuation.section.parens.end.meson
+          pop: 1
+        - include: try_expression
+    - match: \)
+      scope: punctuation.section.parens.end.meson invalid.illegal.meson
+      
+    - include: try_operator
+    - include: try_literal
+    - include: try_variable
+
+  pops1_inside-function-call:
+    - meta_content_scope: meta.sequence.meson meta.function-call.arguments.meson
+    - match: \)
+      scope: punctuation.section.parens.end.meson
+      set: pops1_after-expression
+    - match: '\:'
+      scope: invalid.illegal.meson
+    - match: \b({{IDENTIFIER}})\s*(\:)\s*([\,\:]*)
+      captures:
+        1: variable.parameter.meson
+        2: punctuation.separator.key-value keyword.operator.assignment.meson
+        3: invalid.illegal.meson
+    - include: try_expression
+    - match: \,
+      scope: punctuation.separator.sequence.meson
+
+  pops1_after-expression:
+    - match: \(
+      scope: punctuation.section.parens.begin.meson
+      set: pops1_inside-function-call
+    - match: \s*(?!\.)
+      pop: 1
+    - include: try_expression
+    - include: immediately-pop1
 
 
-####[ CONDITIONAL STATEMENTS ]##################################################
+################################[ CONTROL FLOW ]################################
 
-  conditional-statements:
-    - match: if\b
+  try_control-flow:
+    - match: \bbreak\b
+      scope: keyword.control.flow.break.meson invalid.illegal.meson
+    - match: \bcontinue\b
+      scope: keyword.control.flow.continue.meson invalid.illegal.meson
+    - match: \belif\b
+      scope: keyword.control.conditional.elseif.meson invalid.illegal.meson
+    - match: \belse\b
+      scope: keyword.control.conditional.else.meson invalid.illegal.meson
+    - match: \bendforeach\b
+      scope: keyword.control.loop.end.meson invalid.illegal.meson
+    - match: \bendif\b
+      scope: keyword.control.conditional.end.meson invalid.illegal.meson
+    - match: \bforeach\b
+      scope: keyword.control.loop.for.meson
+      push: pops1_foreach-condition
+    - match: \bif\b
       scope: keyword.control.conditional.if.meson
-      push: if-statement-condition
-    - match: elif\b
+      push: pops1_if-body
+
+  pops1_if-body:
+    - match: \belif\b
       scope: keyword.control.conditional.elseif.meson
-      push: elif-statement-condition
-    - match: (else)\b
-      scope: meta.statement.conditional.else.meson
-      captures:
-        1: keyword.control.conditional.else.meson
-    - match: (endif)\b
-      scope: meta.statement.conditional.endif.meson
-      captures:
-        1: keyword.control.conditional.endif.meson
-
-  if-statement-condition:
-    - meta_scope: meta.statement.conditional.if.meson
-    - match: '\n'
+      set: pops1_if-body
+    - match: \belse\b
+      scope: keyword.control.conditional.else.meson
+      set: pops1_else-body
+    - match: \bendif\b
+      scope: keyword.control.conditional.end.meson
       pop: 1
-    - include: line-continuation-or-pop
-    - include: expression-in-a-statement
+    - include: statements
 
-  elif-statement-condition:
-    - meta_scope: meta.statement.conditional.elseif.meson
-    - match: '\n'
+  pops1_else-body:
+    - match: \bendif\b
+      scope: keyword.control.conditional.end.meson
       pop: 1
-    - include: line-continuation-or-pop
-    - include: expression-in-a-statement
+    - include: statements
 
+  pops1_foreach-condition:
+    - match: '\:'
+      scope: punctuation.separator.key-value keyword.operator.assignment.meson
+      set: pops1_foreach-finish-condition
+    - match: \,
+      scope: punctuation.separator.sequence.meson
+    - include: try_expression
 
-####[ FOREACH STATEMENTS ]######################################################
+  pops1_foreach-finish-condition:
+    - include: try_expression
+    - match: $
+      set: pops1_foreach-body
 
-  foreach-statements:
-    - match: (foreach)\b
-      captures:
-        1: keyword.control.loop.foreach.meson
-      push: foreach-statement-target-list
-    - match: (endforeach)\b
-      captures:
-        1: keyword.control.loop.endforeach.meson
-
-  foreach-statement-target-list:
-    - meta_scope: meta.statement.loop.foreach.meson
-    - match: '\s+$'
-      scope: invalid.illegal.missing-identifiers.meson
+  pops1_foreach-body:
+    - match: \bendforeach\b
+      scope: keyword.control.loop.end.meson
       pop: 1
-    - match: '{{colon}}'
-      scope: keyword.control.loop.for.in.meson
-      set: foreach-statement-in
-    - include: line-continuation-or-pop
-    - include: expression-in-a-statement
-
-  foreach-statement-in:
-    - meta_content_scope: meta.statement.loop.foreach.meson
-    - match: \n
-      pop: 1
-    - include: line-continuation-or-pop
-    - include: expression-in-a-statement
-
-
-####[ FLOW STATEMENTS ]#########################################################
-
-  flow-statements:
-    - match: break\b
+    - match: \bbreak\b
       scope: keyword.control.flow.break.meson
-    - match: continue\b
+    - match: \bcontinue\b
       scope: keyword.control.flow.continue.meson
+    - include: statements
 
 
-####[ FUNCTION CALLS ]##########################################################
+##################################[ LITERALS ]##################################
 
-  function-calls:
-    - match: (?=(\.\s*)?{{path}}\s*\()
-      push:
-        - function-call-argument-list
-        - function-call-wrapper
-        - qualified-name-until-leaf
+  try_literal:
+    - include: try_binary-literal
+    - include: try_boolean-literal
+    - include: try_hex-literal
+    - include: try_octal-literal
+    - include: try_decimal-literal
+    
+    - include: try_array-literal
+    - include: try_dictionary-literal
+    - include: try_string-literal
 
-  function-call-wrapper:
-    - match: (\.)\s*
-      scope: meta.path.meson
+  try_binary-literal:
+    - match: \b0b[01]+
+      scope: meta.number.integer.binary.meson constant.numeric.value.meson
+      push: pops1_after-expression
+    - match: \b0b[^01\s]*
+      scope: meta.number.integer.binary.meson constant.numeric.value.meson invalid.illegal.meson
+  try_boolean-literal:
+    - match: \bfalse\b
+      scope: constant.language.boolean.false.meson
+      push: pops1_after-expression
+    - match: \btrue\b
+      scope: constant.language.boolean.true.meson
+  try_hex-literal:
+    - match: \b0x[a-fA-F0-9]+
+      scope: meta.number.integer.hexadecimal.meson constant.numeric.value.meson
+      push: pops1_after-expression
+    - match: \b0x[^a-fA-F0-9\s]*
+      scope: meta.number.integer.hexadecimal.meson constant.numeric.value.meson invalid.illegal.meson
+  try_octal-literal:
+    - match: \b0o[0-7]+
+      scope: meta.number.integer.octal.meson constant.numeric.value.meson
+      push: pops1_after-expression
+    - match: \b0o[^0-7\s]*
+      scope: meta.number.integer.octal.meson constant.numeric.value.meson invalid.illegal.meson
+  try_decimal-literal:
+    - match: \b(0([0-9]*)|[1-9][0-9]*)
       captures:
-        1: punctuation.accessor.dot.meson
-      set: qualified-function-call-name
-    - match: ''
-      set: unqualified-function-call-name
+        1: meta.number.integer.decimal.meson constant.numeric.value.meson
+        2: invalid.illegal.meson
+      push: pops1_after-expression
 
-  qualified-function-call-name:
-    - meta_content_scope: meta.function-call.identifier.meson meta.path.meson
-    - include: dotted-name-specials
-    - include: constant-names
-    - include: function-names
-    - include: immediately-pop
-
-  unqualified-function-call-name:
-    - meta_scope: meta.function-call.identifier.meson
-    - include: name-specials
-    - include: function-names
-    - include: immediately-pop
-
-  function-call-argument-list:
-    - meta_include_prototype: false
-    - match: \(
-      scope: punctuation.section.arguments.begin.meson
-      set:
-        - function-call-argument-list-body
-
-  function-call-argument-list-body:
-    - meta_scope: meta.function-call.arguments.meson
-    - match: \)
-      scope: punctuation.section.arguments.end.meson
-      set: after-expression
-    - include: arguments
-
-  arguments:
-    - include: argument-separators
-    - include: keyword-arguments
-    - include: expression-in-a-sequence
-
-  argument-separators:
-    - match: ','
-      scope: punctuation.separator.arguments.meson
-
-  keyword-arguments:
-    - match: (?={{identifier}}{{hspace}}*{{colon}})
-      push: keyword-argument-name
-
-  keyword-argument-name:
-    - match: '{{hspace}}'
-      scope: keyword.operator.assignment.meson
-      set:
-        - keyword-argument-value
-    - include: parameter-names
-
-  keyword-argument-value:
-    - match: (?=[,)]|:(?!{{colon}}))
-      pop: 1
-    - include: expression-in-a-group
-
-
-####[ GROUPS ]##################################################################
-
-  groups:
-    - match: \(
-      scope: punctuation.section.group.begin.meson
-      set: group-body
-
-  group-body:
-    - meta_scope: meta.group.meson
-    - match: \)
-      scope: punctuation.section.group.end.meson
-      set: after-expression
-    - include: expression-in-a-sequence
-
-  illegal-stray-parens:
-    - match: \)
-      scope: invalid.illegal.stray.meson
-
-
-####[ LISTS ]###################################################################
-
-  lists:
-    - include: empty-lists
+  try_array-literal:
+    - match: \]
+      scope: punctuation.section.brackets.end.meson invalid.illegal.meson
     - match: \[
-      scope: punctuation.section.sequence.begin.meson
-      push:
-        - list-body
-
-  list-body:
-    - meta_scope: meta.sequence.list.meson
+      scope: punctuation.section.brackets.begin.meson
+      push: pops1_inside-array-literal
+  pops1_inside-array-literal:
+    - meta_scope: meta.brackets.meson
+    - meta_content_scope: meta.sequence.meson
     - match: \]
-      scope: punctuation.section.sequence.end.meson
-      set: after-expression
-    - include: expression-in-a-sequence
-
-  empty-lists:
-    - match: (\[)\s*(\])
-      scope: meta.sequence.list.empty.meson
-      captures:
-        1: punctuation.section.sequence.begin.meson
-        2: punctuation.section.sequence.end.meson
-      push: after-expression
-
-  illegal-stray-brackets:
-    - match: \]
-      scope: invalid.illegal.stray.meson
+      scope: punctuation.section.brackets.end.meson
+      set: pops1_after-expression
+    - include: try_expression
+    - match: \,
+      scope: punctuation.separator.sequence.meson
 
 
-####[ DICTIONARIES ]############################################################
+  pops1_end-dictionary-literal:
+    - match: \}
+      scope: punctuation.section.mapping.end.meson
+      set: pops1_after-expression
+  pops1_separator-dictionary-literal:
+    - match: \,
+      scope: punctuation.separator.sequence.meson
+      set: pops1_inside-dictionary-literal
 
-  dictionaries:
-    - include: empty-dictionaries
+  try_dictionary-literal:
+    - match: \}
+      scope: punctuation.section.braces.end.meson invalid.illegal.meson
     - match: \{
       scope: punctuation.section.mapping.begin.meson
-      push: dictionary-body
+      push: pops1_inside-dictionary-literal
 
-  dictionary-end:
-    - match: \}
-      scope: meta.mapping.meson punctuation.section.mapping.end.meson
-      set: after-expression
-
-  dictionary-separator:
-    - match: ','
-      scope: punctuation.separator.sequence.meson
-      set: dictionary-body
-
-  dictionary-body:
+  pops1_inside-dictionary-literal:
     - meta_scope: meta.mapping.meson
-    - meta_content_scope: meta.mapping.meson
-    - include: dictionary-end
-    - include: comments
-    - include: illegal-commas
-    - match: '{{colon}}'
-      scope: meta.mapping.meson punctuation.separator.key-value.meson
-      set: dictionary-value
+    - include: pops1_end-dictionary-literal
+    - match: '\:'
+      scope: punctuation.separator.key-value
+      set: pops1_dictionary-value
     - match: (?=\S)
-      set: directory-key-body
+      set: pops1_inside-directory-key
 
-  directory-key-body:
-    - meta_scope: meta.mapping.key.meson
-    - match: (?=\s*[,:}])
-      set: dictionary-body
-    - include: expression-in-a-group
-
-  dictionary-value:
+  pops1_dictionary-value:
     - meta_include_prototype: false
     - meta_content_scope: meta.mapping.meson
-    - include: dictionary-end
-    - include: dictionary-separator
+    - include: pops1_end-dictionary-literal
+    - include: pops1_separator-dictionary-literal
     - match: (?=\S)
-      set: directory-value-body
+      set: pops1_inside-dictionary-value
 
-  directory-value-body:
+  pops1_inside-dictionary-value:
     - meta_content_scope: meta.mapping.value.meson
     - match: (?=\s*[,}])
-      set: after-dictionary-value
-    - include: expression-in-a-group
+      set: pops1_after-dictionary-value
+    - include: try_expression
 
-  after-dictionary-value:
+  pops1_after-dictionary-value:
     - meta_include_prototype: false
     - meta_content_scope: meta.mapping.meson
-    - include: dictionary-end
-    - include: dictionary-separator
+    - include: pops1_end-dictionary-literal
+    - include: pops1_separator-dictionary-literal
 
-  empty-dictionaries:
-    - match: (\{)\s*(\})
-      scope: meta.mapping.empty.meson
-      captures:
-        1: punctuation.section.mapping.begin.meson
-        2: punctuation.section.mapping.end.meson
-      push: after-expression
+  pops1_inside-directory-key:
+    - meta_scope: meta.mapping.key.meson
+    - match: (?=\s*[,:}])
+      set: pops1_inside-dictionary-literal
+    - include: try_expression
 
-  illegal-colons:
-    - match: '{{colon}}'
-      scope: invalid.illegal.unexpected-colon.meson
-
-  illegal-commas:
-    - match: ','
-      scope: invalid.illegal.unexpected-comma.meson
-
-  illegal-stray-braces:
-    - match: \}
-      scope: invalid.illegal.stray.meson
-
-
-####[ ITEM ACCESS ]#############################################################
-
-  items:
-    - match: (?={{path}}\s*\[)
+  try_string-literal:
+    - match: f(?=')
+      scope: storage.type.string.meson
       push:
-        - item-access
-        - qualified-name-content
-
-  item-access:
-    - match: \[
-      scope: punctuation.section.brackets.begin.meson
-      set: maybe-item-access-body
-
-  maybe-item-access-body:
-    - meta_scope: meta.brackets.meson
-    - match: \]
-      scope: punctuation.section.brackets.end.meson
-      set: after-expression
-    - include: expression-in-a-group
-
-
-####[ OPERATORS ]###############################################################
-
-  illegal-assignment:
-    - match: \:?=
-      scope: invalid.illegal.assignment.meson
-      pop: 1
-    - include: line-continuation-or-pop
-    - include: else-pop
-
-  operators:
-    - match: '{{augmented_assignment_operators}}'
-      scope: invalid.illegal.assignment.meson
-    - match: '[-%*+/]'
-      scope: keyword.operator.arithmetic.meson
-    - match: <=|>=|==|\!=|<|>
-      scope: keyword.operator.comparison.meson
-    - match: '\?|:(?!:)'
-      scope: keyword.operator.ternary.meson
-    - match: =
-      scope: invalid.illegal.assignment.meson
-    - match: (?:and|in|is|not|or)\b
-      scope: keyword.operator.logical.meson
-    - include: sequence-separators
-
-  sequence-separators:
-    - match: ','
-      scope: punctuation.separator.sequence.meson
-
-  statement-terminators:
-    - match: ;
-      scope: invalid.illegal.terminator.meson
-
-
-####[ IDENTIFIERS ]#############################################################
-
-  name:
-    - match: (?={{identifier}})
-      push: name-content
-
-  name-content:
-    - include: name-specials
-    - include: constant-names
-    - include: generic-names
-    - include: immediately-pop
-
-  dotted-name:
-    - match: '{hspace}*(\.){hspace}*(?={{identifier}})'
-      captures:
-        1: punctuation.accessor.dot.meson
-      push: dotted-name-content
-
-  dotted-name-content:
-    - include: dotted-name-specials
-    - include: constant-names
-    - include: generic-names
-    - include: immediately-pop
-
-  qualified-name:
-    - match: (?={{path}})
-      push: qualified-name-content
-    - match: \.
-      scope: punctuation.accessor.dot.meson
-
-  qualified-name-content:
-    - meta_scope: meta.path.meson
-    - include: name
-    - include: dotted-name
-    - include: immediately-pop
-
-  qualified-name-until-leaf:
-    # Push this together with another context to match a qualified name
-    # until the last non-special identifier (if any).
-    # This allows the leaf to be scoped individually.
-    - meta_scope: meta.path.meson
-    # If a line continuation follows, this may or may not be the last leaf (most likley not though)
-    - match: (?={{identifier}}\s*(\.|\\))
-      push: name-content
-    - match: (\.)\s*(?={{identifier}}\s*(\.|\\))
-      captures:
-        1: punctuation.accessor.dot.meson
-      push: dotted-name-content
-    - match: \.(?!\s*{{identifier}})  # don't match last dot
-      scope: punctuation.accessor.dot.meson
-    - match: (?=\S|$)
-      pop: 1
-
-  name-specials:
-    - include: builtin-functions
-    - include: builtin-variables
-    - include: illegal-names
-
-  dotted-name-specials:
-    - include: builtin-variables
-    - include: illegal-names
-
-  builtin-functions:
-    - match: '{{builtin_functions}}'
-      scope: support.function.builtin.meson
-
-  builtin-variables:
-    - match: '{{builtin_variables}}'
-      scope: support.variable.magic.meson
-
-  constant-names:
-    - match: '{{identifier_constant}}'
-      scope: variable.other.constant.meson
-
-  function-names:
-    - match: '{{identifier}}'
-      scope: variable.function.meson
-
-  generic-names:
-    - match: '{{identifier}}'
-      scope: meta.generic-name.meson
-
-  generic-name:
-    - match: '{{identifier}}'
-      scope: meta.generic-name.meson
-      pop: 1
-
-  illegal-names:
-    - match: '{{illegal_names}}\b'
-      scope: invalid.illegal.name.meson
-
-  illegal-name:
-    - match: '{{illegal_names}}\b'
-      scope: invalid.illegal.name.meson
-      pop: 1
-
-  parameter-names:
-    - include: illegal-names
-    - match: '{{identifier}}'
-      scope: variable.parameter.meson
-
-
-####[ LITERALS ]################################################################
-
-  constants:
-    - include: booleans
-
-  booleans:
-    - match: (?:true|false)\b
-      scope: constant.language.boolean.meson
-      push: illegal-assignment
-
-  numbers:
-    # https://mesonbuild.com/Syntax.html#numbers
-    # hexadecimal
-    - match: (0[xX])((?:\h)+)
-      scope: meta.number.integer.hexadecimal.meson
-      captures:
-        1: constant.numeric.base.meson
-        2: constant.numeric.value.meson
-    # octal
-    - match: (0[oO])((?:[0-7])+)(\d*)
-      scope: meta.number.integer.octal.meson
-      captures:
-        1: constant.numeric.base.meson
-        2: constant.numeric.value.meson
-        3: invalid.illegal.digit.meson
-    # binary
-    - match: (0[bB])((?:[01])*)(\d*)
-      scope: meta.number.integer.binary.meson
-      captures:
-        1: constant.numeric.base.meson
-        2: constant.numeric.value.meson
-        3: invalid.illegal.digit.meson
-    # integer
-    - match: (?:(0?)[1-9][\d_]*|0)
-      scope: meta.number.integer.decimal.meson constant.numeric.value.meson
-      captures:
-        1: invalid.illegal.digits.meson
-
-
-####[ STRINGS ]#################################################################
-
-  strings:
-    # triple-quoted version must be matched first
-    - include: triple-single-quoted-strings
-    - include: single-quoted-strings
-
-
-####[ TRIPLE SINGLE QUOTED STRINGS ]############################################
-
-  triple-single-quoted-strings:
-    - include: triple-single-quoted-u-string
-
-  triple-single-quoted-string-end:
+        - match: "'''"
+          scope: punctuation.definition.string.begin.meson
+          set: pops1_inside-fmt-string-multiline
+        - match: "'"
+          scope: punctuation.definition.string.begin.meson
+          set: pops1_inside-fmt-string-simple
+        - include: else-pop1
     - match: "'''"
-      scope: meta.string.meson string.quoted.single.block.meson punctuation.definition.string.end.meson
-      set: after-expression
+      scope: punctuation.definition.string.begin.meson
+      push: pops1_inside-string-multiline
+    - match: "'"
+      scope: punctuation.definition.string.begin.meson
+      push: pops1_inside-string-simple
 
-  triple-single-quoted-u-string:
-    - include: triple-single-quoted-u-string-begin
+  try_string-literal-character-escape:
+    - match: \\\\|\\'|\\a|\\b|\\f|\\n|\\r|\\t|\\v
+      scope: constant.character.escape.meson
+    - match: \\[0-7]{3}
+      scope: constant.character.escape.octal.meson
+    - match: \\x[0-9a-fA-F]{2}
+      scope: constant.character.escape.hex.meson
+    - match: \\u[0-9a-fA-F]{4}
+      scope: constant.character.escape.unicode.16bit.meson
+    - match: \\U[0-9a-fA-F]{8}
+      scope: constant.character.escape.unicode.32bit.meson
+    - match: \\N\{{{IDENTIFIER}}\}
+      scope: constant.character.escape.unicode.name.meson
+    - match: \\.
+      scope: constant.character.escape.meson invalid.illegal.meson
 
-
-  triple-single-quoted-u-string-begin:
-    # Triple-quoted raw string, treated as regex
-    - match: "'''"
-      scope: meta.string.meson string.quoted.single.block.meson punctuation.definition.string.begin.meson
-      push: triple-single-quoted-u-string-body
-
-  triple-single-quoted-u-string-body:
-    - meta_include_prototype: false
-    - meta_content_scope: meta.string.meson string.quoted.single.block.meson
-    - include: triple-single-quoted-string-end
-
-
-####[ SINGLE QUOTED STRINGS ]###################################################
-
-  single-quoted-strings:
-    - include: single-quoted-f-strings
-    - include: single-quoted-u-strings
-
-  single-quoted-string-end:
-    - match: (')|(\n)
-      scope: meta.string.meson string.quoted.single.meson
-      captures:
-        1: punctuation.definition.string.end.meson
-        2: invalid.illegal.unclosed-string.meson
-      set: after-expression
-    - include: string-continuations
-
-  single-quoted-string-pop:
-    - match: (?='|\n)
-      pop: 1
-    - include: string-continuations
-
-  single-quoted-u-strings:
-    - match: (')
-      scope: meta.string.meson string.quoted.single.meson punctuation.definition.string.begin.meson
-      push: single-quoted-u-string-body
-
-  single-quoted-u-string-body:
-    - meta_include_prototype: false
-    - meta_content_scope: meta.string.meson string.quoted.single.meson
-    - include: single-quoted-string-end
-    - include: single-quoted-u-string-syntax
-
-  single-quoted-u-string-syntax:
-    # Single-line string, unicode or not
-    - match: (?=\S)
-      set: single-quoted-plain-u-string-body
-
-  single-quoted-plain-u-string-body:
-    - meta_include_prototype: false
-    - meta_content_scope: meta.string.meson string.quoted.single.meson
-    - include: single-quoted-string-end
-    - include: single-quoted-u-string-content
-
-  single-quoted-u-string-content:
-    - include: escaped-unicode-chars
-    - include: escaped-chars
-    - include: single-quoted-string-replacements
-
-  single-quoted-f-strings:
-    # Single-line f-string
-    - match: (f)(')
-      captures:
-        1: storage.type.string.meson
-        2: meta.string.meson string.quoted.single.meson punctuation.definition.string.begin.meson
-      push: single-quoted-f-string-body
-
-  single-quoted-f-string-body:
-    - meta_include_prototype: false
-    - meta_content_scope: meta.string.meson string.quoted.single.meson
-    - include: single-quoted-string-end
-    - include: single-quoted-f-string-content
-
-  single-quoted-f-string-content:
-    - include: single-quoted-f-string-replacements
-    - include: escaped-unicode-chars
-    - include: escaped-chars
-
-  single-quoted-string-replacements:
-    - match: (?=\{)
-      branch_point: single-quoted-string-replacement
-      branch:
-        - single-quoted-string-replacement
-        - string-replacement-fallback
-
-  single-quoted-string-replacement:
-    - match: \{
-      scope: punctuation.definition.placeholder.begin.meson
-      set: single-quoted-string-replacement-body
-
-  single-quoted-string-replacement-body:
-    - meta_scope: constant.other.placeholder.meson
-    - include: string-replacement-body
-    - match: \[
-      scope: punctuation.section.brackets.begin.meson
-      push: single-string-replacement-brackets-body
-    - match: ':'
-      scope: punctuation.separator.format-spec.meson
-      push: single-quoted-string-replacement-formatspec-body
-    - match: (?!\w) # restrict field names to reduce risk of false positives
-      fail: single-quoted-string-replacement
-
-  single-string-replacement-brackets-body:
-    - include: string-replacement-brackets-body
-    - include: single-quoted-string-replacement-fail
-
-  single-quoted-string-replacement-formatspec-body:
-    - meta_content_scope: meta.format-spec.meson constant.other.format-spec.meson
-    - include: string-replacement-formatspec-body
-    - match: \{
-      scope: punctuation.definition.placeholder.begin.meson
-      push: single-quoted-string-replacement-body
-    - include: single-quoted-string-replacement-fail
-
-  single-quoted-string-replacement-fail:
-    - match: (?='|$)
-      fail: single-quoted-string-replacement
-
-  single-quoted-f-string-replacements:
-    - include: f-string-replacements
-    - match: \{
+  try_string-literal-interpolation:
+    - match: \@
       scope: punctuation.section.interpolation.begin.meson
       push:
-        - f-string-replacement-meta
-        - single-quoted-f-string-replacement-formatspec
-        - single-quoted-f-string-replacement-expression
-
-  single-quoted-f-string-replacements-regexp:
-    # Same as f-string-replacements, but will reset the entire scope stack.
-    - include: f-string-replacements-regexp
-    - match: \{
-      scope: punctuation.section.interpolation.begin.meson
-      push:
-        - f-string-replacement-regexp-meta
-        - single-quoted-f-string-replacement-formatspec
-        - single-quoted-f-string-replacement-expression
-
-  single-quoted-f-string-replacement-expression:
-    - meta_content_scope: source.meson.embedded
-    - include: f-string-replacement-expression
-    - include: eol-pop
-
-  single-quoted-f-string-replacement-formatspec:
-    - meta_include_prototype: false
-    - match: ':'
-      scope: punctuation.separator.format-spec.meson
-      set: single-quoted-f-string-replacement-formatspec-body
-    - include: single-quoted-f-string-replacement-end
-
-  single-quoted-f-string-replacement-formatspec-body:
-    - meta_content_scope: meta.format-spec.meson constant.other.format-spec.meson
-    - include: single-quoted-f-string-replacement-end
-    - include: single-quoted-f-string-replacements
-
-  single-quoted-f-string-replacement-end:
-    - include: f-string-replacement-end
-    - match: (?='|$)
-      pop: 2
-
-
-####[ STRING CONTENTS ]#########################################################
-
-  string-continuations:
-    - match: \\$
-      scope: punctuation.separator.continuation.line.meson
-      push:
-        - meta_include_prototype: false
-        - match: ^
+        - meta_content_scope: meta.interpolation.meson
+        - clear_scopes: 1   # should remove the "string.quoted" scope
+        - include: try_literal
+        - include: try_variable
+        - match: \@
+          scope: punctuation.section.interpolation.end.meson
           pop: 1
 
-  escaped-chars:
-    - match: \\[\\'abfnrtv]
-      scope: constant.character.escape.meson
-    - match: \\[0-7]{1,3}
-      scope: constant.character.escape.octal.meson
-    - match: \\x\h{2}
-      scope: constant.character.escape.hex.meson
-
-  escaped-unicode-chars:
-    - match: \\u\h{4}
-      scope: constant.character.escape.unicode.16bit.meson
-    - match: \\U\h{8}
-      scope: constant.character.escape.unicode.32bit.meson
-    - match: \\N\{[-a-zA-Z ]+\}
-      scope: constant.character.escape.unicode.name.meson
-
-  string-replacement-body:
-    - match: \}
-      scope: punctuation.definition.placeholder.end.meson
-      pop: 1
-    - match: \.
-      scope: punctuation.accessor.dot.meson
-    - match: '![ars]\b'
-      scope: storage.modifier.conversion.meson
-    - include: escaped-chars
-
-  string-replacement-brackets-body:
-    - meta_scope: meta.brackets.meson
-    - match: \]
-      scope: punctuation.section.brackets.end.meson
-      pop: 1
-    - include: eol-pop
-    - include: escaped-chars
-
-  string-replacement-formatspec-body:
-    - match: \}
-      scope: punctuation.definition.placeholder.end.meson
-      pop: 2
-    - include: escaped-chars
-
-  string-replacement-fallback:
-    - match: \{
-      pop: 1
-
-  f-string-replacements:
-    - include: invalid-f-string-replacements
-
-  f-string-replacement-meta:
-    - clear_scopes: 1
+  pops1_inside-fmt-string-multiline:
     - meta_include_prototype: false
-    - meta_scope: meta.interpolation.meson
-    - include: immediately-pop
+    - meta_scope: meta.string.meson string.quoted.triple.meson
+    - include: try_string-literal-character-escape
+    - include: try_string-literal-interpolation
+    - match: "'''"
+      scope: punctuation.definition.string.end.meson
+      set: pops1_after-expression
 
-  f-string-replacements-regexp:
-    # Same as f-string-replacements, but will reset the entire scope stack
-    # and has an additional match.
-    - include: invalid-f-string-replacements
-
-  f-string-replacement-regexp-meta:
-    # Same as f-string-replacement, but with clear_scopes: true
-    - clear_scopes: true
+  pops1_inside-string-multiline:
     - meta_include_prototype: false
-    - meta_scope: source.meson meta.string.meson meta.interpolation.meson
-    - include: immediately-pop
+    - meta_scope: meta.string.meson string.quoted.triple.meson
+    - include: try_string-literal-character-escape
+    - match: "'''"
+      scope: punctuation.definition.string.end.meson
+      set: pops1_after-expression
 
-  f-string-replacement-expression:
-    - match: (?:\s*(=)\s*)?(![ars])?(?=[:}])
-      captures:
-        1: storage.modifier.debug.meson
-        2: storage.modifier.conversion.meson
+  pops1_inside-fmt-string-simple:
+    - meta_include_prototype: false
+    - meta_scope: meta.string.meson string.quoted.single.meson
+    - match: \n
+      scope: invalid.illegal.meson
       pop: 1
-    - match: \\
-      scope: invalid.illegal.backslash-in-fstring.meson
-    - include: expression-in-a-sequence
+    - include: try_string-literal-character-escape
+    - include: try_string-literal-interpolation
+    - match: "'"
+      scope: punctuation.definition.string.end.meson
+      set: pops1_after-expression
 
-  f-string-replacement-end:
-    - match: \}
-      scope: punctuation.section.interpolation.end.meson
-      pop: 2
+  pops1_inside-string-simple:
+    - meta_include_prototype: false
+    - meta_scope: meta.string.meson string.quoted.single.meson
+    - match: \n
+      scope: invalid.illegal.meson
+      pop: 1
+    - include: try_string-literal-character-escape
+    - match: "'"
+      scope: punctuation.definition.string.end.meson
+      set: pops1_after-expression
 
-  invalid-f-string-replacements:
-    - match: '\{\s*\}'
-      scope: invalid.illegal.empty-expression.meson
-    - include: illegal-stray-braces
 
+###################################[ HELPER ]###################################
 
-####[ PROTOTYPES ]##############################################################
-
-  after-expression:
-    - match: \s*(?=\()
-      set: function-call-argument-list
-    - match: \s*(?=\[)
-      set: item-access
-    - match: \s*(\\)\s*$
-      captures:
-        1: punctuation.separator.continuation.line.meson
-      push: line-continuation-body
-    - include: immediately-pop
-
-  else-pop:
+  else-pop1:
     - match: (?=\S)
       pop: 1
 
-  eol-pop:
+  eol-pop1:
     - match: $
       pop: 1
 
-  immediately-pop:
+  immediately-pop1:
     - match: ''
-      pop: 1
-
-  line-continuation-or-pop:
-    - include: line-continuations
-    - match: (?=\s*[\n;#])
-      pop: 1
-
-  line-continuations:
-    - match: (\\)\s*$
-      captures:
-        1: punctuation.separator.continuation.line.meson
-      push: line-continuation-body
-
-  line-continuation-body:
-    - meta_include_prototype: false
-    # This prevents strings after a continuation from being a docstring
-    - include: strings
-    - include: else-pop
-    - match: ^(?!\s*[[:alpha:]]*['"])
       pop: 1

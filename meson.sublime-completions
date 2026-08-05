@@ -87,6 +87,10 @@
 		{ "kind": "function", "trigger": "declare_dependency",
 			"contents": "declare_dependency()",
 		},
+		{ "kind": "function", "trigger": "default",
+			"contents": "default()",
+			"details": "Returns a `default` object"
+		},
 		{ "kind": "function", "trigger": "dependency",
 			"contents": "dependency()",
 			"details": "Find an external dependency",
@@ -247,8 +251,9 @@
 		{ "kind": "snippet", "trigger": "if",
 			"contents": "if condition\nendif",
 		},
-		{ "kind": "snippet", "trigger": "foreach\tForeach loop",
+		{ "kind": "snippet", "trigger": "foreach",
 			"contents": "foreach item: container\nendforeach",
+			"annotation": "for loop",
 		},
 		
 		{ "kind": "keyword", "trigger": "if" },

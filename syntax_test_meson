@@ -1,0 +1,206 @@
+# SYNTAX TEST "Packages/MonoMeson/meson.sublime-syntax"
+
+# a mesonbuild syntax test
+# <- comment.line punctuation.definition.comment
+#^^^^^^^^^^^^^^^^^^^^^^^^^ comment.line
+
+ 'Hello, World! // not a comment'
+#^ punctuation.definition.string.begin
+#                               ^ punctuation.definition.string.end
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.string string.quoted.single
+
+ ' open string
+#^ punctuation.definition.string.begin
+#^^^^^^^^^^^^^^ meta.string string.quoted.single
+#             ^ invalid.illegal
+
+ '\'
+#^^^^ meta.string string.quoted.single
+# ^^ constant.character.escape
+#   ^ invalid.illegal
+
+ '''Tripled World! // still not a comment''';
+#^^^ punctuation.definition.string.begin
+#                                        ^^^ punctuation.definition.string.end
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.string string.quoted.triple
+
+01234567890 1519750022237845697213
+# <- meta.number.integer.decimal constant.numeric.value
+#^^^^^^^^^^ meta.number.integer.decimal constant.numeric.value invalid.illegal
+#           ^^^^^^^^^^^^ meta.number.integer.decimal constant.numeric.value
+
+ 0b01001104 0b
+#^^^^^^^^^ meta.number.integer.binary constant.numeric.value
+#         ^ -meta.number.integer
+#           ^^ meta.number.integer.binary constant.numeric.value invalid.illegal
+
+ 0o762123548 0o
+#^^^^^^^^^^ meta.number.integer.octal constant.numeric.value
+#          ^ -meta.number.integer
+#            ^^ meta.number.integer.octal constant.numeric.value invalid.illegal
+
+ 0x9f876d12e354abcg 0x da123
+#^^^^^^^^^^^^^^^^^ meta.number.integer.hexadecimal constant.numeric.value
+#                 ^ -meta.number.integer
+#                   ^^ meta.number.integer.hexadecimal constant.numeric.value invalid.illegal
+#                      ^^^^^ -meta.number.integer
+
+ false true
+#^^^^^ constant.language.boolean.false
+#      ^^^^ constant.language.boolean.true
+
+ if
+#^^ keyword.control.conditional.if -invalid.illegal
+ elif
+#^^^^ keyword.control.conditional.elseif -invalid.illegal
+ else
+#^^^^ keyword.control.conditional.else -invalid.illegal
+ endif
+#^^^^^ keyword.control.conditional.end -invalid.illegal
+ foreach i : range( 0x10 )
+#^^^^^^^ keyword.control.loop.for -invalid.illegal
+#        ^ variable.other.readwrite
+#          ^ punctuation.separator.key-value keyword.operator.assignment
+#            ^^^^^ support.function.builtin
+#                 ^ punctuation.section.parens.begin
+#                   ^^^^ meta.sequence meta.function-call.arguments
+#                        ^ punctuation.section.parens.end
+ break
+#^^^^^ keyword.control.flow.break -invalid.illegal
+ continue
+#^^^^^^^^ keyword.control.flow.continue -invalid.illegal
+ endforeach
+#^^^^^^^^^^ keyword.control.loop.end -invalid.illegal
+
+
+ abreak
+#^^^^^^ variable.other.readwrite
+ bcontinue
+#^^^^^^^^^ variable.other.readwrite
+ celif
+#^^^^^ variable.other.readwrite
+ delse
+#^^^^^ variable.other.readwrite
+ eendforeach
+#^^^^^^^^^^^ variable.other.readwrite
+ fendif
+#^^^^^^ variable.other.readwrite
+ gforeach
+#^^^^^^^^ variable.other.readwrite
+ hif
+#^^^ variable.other.readwrite
+
+ += + =
+#^^ keyword.operator.assignment
+#   ^ keyword.operator.arithmetic
+#     ^ keyword.operator.assignment
+
+ <= > < >=
+#^^ keyword.operator.comparison
+#   ^ keyword.operator.comparison
+#     ^ keyword.operator.comparison
+#       ^^ keyword.operator.comparison
+
+ expr ? 'true' : 'false'
+#^^^^ variable.other.readwrite
+#       ^^^^^ string.quoted.single
+#     ^ keyword.operator.ternary
+#              ^ keyword.operator.ternary
+#                 ^^^^^^ string.quoted.single
+
+[ build_machine,host_machine,  meson somevar, target_machine ,
+#<- punctuation.section.brackets.begin
+# ^^^^^^^^^^^^^ variable.language
+#              ^ punctuation.separator.sequence
+#               ^^^^^^^^^^^^ variable.language
+#                           ^ punctuation.separator.sequence
+#                              ^^^^^ variable.language
+#                                    ^^^^^^^ variable.other.readwrite
+#                                             ^^^^^^^^^^^^^^ variable.language
+  add_global_arguments ]
+# ^^^^^^^^^^^^^^^^^^^^ support.function.builtin
+#                      ^ punctuation.section.brackets.end
+
+]
+#<- punctuation.section.brackets.end invalid.illegal
+
+{ 'key' : 'value' }
+#<- punctuation.section.mapping.begin
+# ^^^^^ meta.mapping.key meta.string
+#       ^ punctuation.separator.key-value
+#         ^^^^^^^ meta.mapping.value meta.string
+#^^^^^^^^^^^^^^^^^ meta.mapping
+#                 ^ punctuation.section.mapping.end
+
+}
+#<- punctuation.section.braces.end invalid.illegal
+
+ project('awesome-project', 'c', version : ver, license: :,)
+#^^^^^^^ support.function.builtin
+#       ^ punctuation.section.parens.begin
+#                         ^ punctuation.separator.sequence
+#                              ^ punctuation.separator.sequence
+#                                ^^^^^^^ variable.parameter
+#                                        ^ punctuation.separator.key-value keyword.operator.assignment
+#                                          ^^^ variable.other.readwrite
+#                                             ^ punctuation.separator.sequence
+#                                               ^^^^^^^ variable.parameter
+#                                                      ^ punctuation.separator.key-value keyword.operator.assignment
+#                                                        ^^ invalid.illegal
+#                                                          ^ punctuation.section.parens.end
+#        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call.arguments
+
+ inc = include_directories('include'.property, fake_function(x, y))
+#^^^ variable.other.readwrite
+#    ^ keyword.operator.assignment
+#      ^^^^^^^^^^^^^^^^^^^ support.function.builtin
+#                         ^ punctuation.section.parens.begin
+#                                   ^ punctuation.accessor.dot
+#                                    ^^^^^^^^ variable.other.readwrite
+#                                            ^ punctuation.separator.sequence
+#                                              ^^^^^^^^^^^^^ variable.function
+#                                                            ^ variable.other.readwrite
+#                                                             ^ punctuation.separator.sequence
+#                                                               ^ variable.other.readwrite
+#                                                                ^^ punctuation.section.parens.end
+#                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.sequence meta.function-call.arguments
+
+.expressionless
+#<- punctuation.accessor.dot -invalid.illegal
+#^^^^^^^^^^^^^^ variable.other.readwrite
+
+ returnsCallable(true, 10)('hello')
+#^^^^^^^^^^^^^^^ variable.function.meson
+#               ^ punctuation.section.parens.begin
+#                    ^ punctuation.separator.sequence
+#                        ^ punctuation.section.parens.end
+#                ^^^^^^^^ meta.sequence meta.function-call.arguments
+#                         ^ punctuation.section.parens.begin
+#                                 ^ punctuation.section.parens.end
+#                          ^^^^^^^ meta.sequence meta.function-call.arguments
+    .method1().method2({'abc': 26})
+#   ^ punctuation.accessor.dot
+#    ^^^^^^^ variable.function
+#             ^ punctuation.accessor.dot
+#              ^^^^^^^ variable.function
+#                      ^ punctuation.section.mapping.begin
+#                       ^^^^^ meta.mapping.key meta.string
+#                            ^ punctuation.separator.key-value
+#                              ^^ meta.mapping.value meta.number.integer
+#                       ^^^^^^^^^ meta.mapping
+#                                ^ punctuation.section.mapping.end
+
+ any
+#^^^   support.type - variable.language variable.other.readwrite
+ array
+#^^^^^ support.type - variable.language variable.other.readwrite
+ bool
+#^^^^  support.type - variable.language variable.other.readwrite
+ dict
+#^^^^  support.type - variable.language variable.other.readwrite
+ int
+#^^^   support.type - variable.language variable.other.readwrite
+ str
+#^^^   support.type - variable.language variable.other.readwrite
+ void
+#^^^^  support.type - variable.language variable.other.readwrite
