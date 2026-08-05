@@ -115,6 +115,8 @@ contexts:
       scope: keyword.operator.ternary.meson
 
   try_variable:
+    - match: \b{{ELEMENTARY_TYPES}}\b
+      scope: support.type.meson
     - match: \b{{BUILTIN_OBJECTS}}\b
       scope: variable.language.meson
       push: pops1_after-expression

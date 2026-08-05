@@ -189,3 +189,18 @@
 #                              ^^ meta.mapping.value meta.number.integer
 #                       ^^^^^^^^^ meta.mapping
 #                                ^ punctuation.section.mapping.end
+
+ any
+#^^^   support.type - variable.language variable.other.readwrite
+ array
+#^^^^^ support.type - variable.language variable.other.readwrite
+ bool
+#^^^^  support.type - variable.language variable.other.readwrite
+ dict
+#^^^^  support.type - variable.language variable.other.readwrite
+ int
+#^^^   support.type - variable.language variable.other.readwrite
+ str
+#^^^   support.type - variable.language variable.other.readwrite
+ void
+#^^^^  support.type - variable.language variable.other.readwrite
