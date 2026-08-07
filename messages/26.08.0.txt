@@ -1,0 +1,5 @@
+                  Meson v26.08.0
+                  ==============
+
+The syntax definition had been reworked from scratch.
+Enjoy the more accurate (and maybe lighter) syntax scoping!
