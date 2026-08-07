@@ -1,6 +1,0 @@
-                  Meson v3.2.4
-                  ============
-
-Added 'Meson Test.sublime-build'.
-
-Added "file_regex" to 'Meson Compile' and 'Meson Setup' to lint build errors in the editor.
