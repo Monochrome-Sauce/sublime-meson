@@ -151,6 +151,7 @@ contexts:
     - include: try_variable
 
   pops1_inside-function-call:
+    - meta_scope: meta.block.meson
     - meta_content_scope: meta.sequence.meson meta.function-call.arguments.meson
     - match: \)
       scope: punctuation.section.parens.end.meson
@@ -199,6 +200,7 @@ contexts:
       push: pops1_if-body
 
   pops1_if-body:
+    - meta_scope: meta.block.meson
     - match: \belif\b
       scope: keyword.control.conditional.elseif.meson
       set: pops1_if-body
@@ -211,12 +213,14 @@ contexts:
     - include: statements
 
   pops1_else-body:
+    - meta_scope: meta.block.meson
     - match: \bendif\b
       scope: keyword.control.conditional.end.meson
       pop: 1
     - include: statements
 
   pops1_foreach-condition:
+    - meta_scope: meta.block.meson
     - match: '\:'
       scope: punctuation.separator.key-value keyword.operator.assignment.meson
       set: pops1_foreach-finish-condition
@@ -291,7 +295,7 @@ contexts:
       scope: punctuation.section.brackets.begin.meson
       push: pops1_inside-array-literal
   pops1_inside-array-literal:
-    - meta_scope: meta.brackets.meson
+    - meta_scope: meta.block.meson meta.brackets.meson
     - meta_content_scope: meta.sequence.meson
     - match: \]
       scope: punctuation.section.brackets.end.meson
@@ -318,13 +322,13 @@ contexts:
       push: pops1_inside-dictionary-literal
 
   pops1_inside-dictionary-literal:
-    - meta_scope: meta.mapping.meson
+    - meta_scope: meta.block.meson meta.mapping.meson
     - include: pops1_end-dictionary-literal
     - match: '\:'
       scope: punctuation.separator.key-value
       set: pops1_dictionary-value
     - match: (?=\S)
-      set: pops1_inside-directory-key
+      set: pops1_inside-dictionary-key
 
   pops1_dictionary-value:
     - meta_include_prototype: false
@@ -346,7 +350,7 @@ contexts:
     - include: pops1_end-dictionary-literal
     - include: pops1_separator-dictionary-literal
 
-  pops1_inside-directory-key:
+  pops1_inside-dictionary-key:
     - meta_scope: meta.mapping.key.meson
     - match: (?=\s*[,:}])
       set: pops1_inside-dictionary-literal
